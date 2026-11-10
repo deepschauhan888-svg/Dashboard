@@ -1,0 +1,148 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   MB Research Intelligence — design tokens
+   Every colour, font and radius used in the product is declared here.
+------------------------------------------------------------------- */
+@theme {
+  /* Brand navy scale */
+  --color-ink-950: #050e1c;
+  --color-ink-900: #071426; /* primary navy */
+  --color-ink-850: #0a1a2f;
+  --color-ink-800: #0c1c31; /* chart surface */
+  --color-ink-750: #10243b; /* secondary navy */
+  --color-ink-700: #15304d;
+  --color-ink-600: #1e3a5c;
+  --color-ink-500: #2a4a70;
+
+  /* Electric blue */
+  --color-signal-600: #1f6fe0;
+  --color-signal-500: #318bff;
+  --color-signal-400: #5aa2ff;
+  --color-signal-200: #a9d1ff;
+  --color-signal-100: #dcebff;
+
+  /* Neutrals for light editorial sections */
+  --color-paper: #ffffff;
+  --color-mist: #f4f7fb;
+  --color-haze: #e7edf5;
+  --color-rule: #d6dfeb;
+  --color-text: #172337;
+  --color-muted: #8995a7;
+  --color-subtle: #5b6779;
+
+  /* Status (reserved — never used as a series colour) */
+  --color-positive: #20b486;
+  --color-negative: #e56c70;
+  --color-caution: #e6a23c;
+
+  /* Chart series (validated against #0C1C31 — see lib/charts/theme.ts) */
+  --color-series-demand: #318bff;
+  --color-series-supply: #e2702f;
+  --color-series-price: #199e70;
+  --color-series-4: #c98500;
+  --color-series-5: #d55181;
+  --color-series-6: #9085e9;
+
+  --font-sans: var(--font-ui), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: var(--font-editorial), ui-serif, Georgia, serif;
+  --font-mono: var(--font-data), ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --animate-pulse-ring: pulse-ring 2.4s var(--ease-out-expo) infinite;
+  --animate-marquee: marquee 60s linear infinite;
+
+  @keyframes pulse-ring {
+    0% { transform: scale(0.6); opacity: 0.9; }
+    100% { transform: scale(2.6); opacity: 0; }
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-paper font-sans text-text;
+    font-feature-settings: "ss01", "cv11";
+  }
+  ::selection {
+    background: var(--color-signal-500);
+    color: #fff;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-signal-400);
+    outline-offset: 2px;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Micro-label: the platform's signature index tag, e.g. "01 — DEMAND" */
+  .eyebrow {
+    @apply font-mono text-[11px] font-medium uppercase tracking-[0.18em];
+  }
+  /* Bracketed frame — hairline corner marks used on charts and media */
+  .frame {
+    position: relative;
+  }
+  .frame::before,
+  .frame::after {
+    content: "";
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    pointer-events: none;
+    border-color: var(--frame-color, var(--color-ink-500));
+  }
+  .frame::before {
+    top: -1px;
+    left: -1px;
+    border-top: 1px solid;
+    border-left: 1px solid;
+  }
+  .frame::after {
+    bottom: -1px;
+    right: -1px;
+    border-bottom: 1px solid;
+    border-right: 1px solid;
+  }
+  .grid-lines {
+    background-image:
+      linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+  .grid-lines-light {
+    background-image:
+      linear-gradient(to right, rgb(23 35 55 / 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(23 35 55 / 0.05) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-ink-600) transparent;
+  }
+}
