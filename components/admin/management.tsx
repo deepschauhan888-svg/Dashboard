@@ -13,8 +13,8 @@ import { StatusPill } from "./status-pill";
 function SearchBox({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
   return (
     <div className="relative">
-      <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted" aria-hidden />
-      <input type="search" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} aria-label={placeholder} className="h-8 w-56 rounded-sm bg-ink-850 pl-8 pr-2 text-[12.5px] text-white outline-none ring-1 ring-inset ring-ink-600 placeholder:text-muted focus:ring-signal-500" />
+      <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-2" aria-hidden />
+      <input type="search" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} aria-label={placeholder} className="h-8 w-56 rounded-sm bg-white pl-8 pr-2 text-[12.5px] text-ink outline-none ring-1 ring-inset ring-line-strong placeholder:text-ink-2/70 focus:ring-brand" />
     </div>
   );
 }
@@ -54,30 +54,30 @@ export function CityManagement() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px]">
             <thead>
-              <tr className="border-b border-ink-600/60">
+              <tr className="border-b border-line">
                 {["City", "State", "Region", "Micromarkets", "Coverage", ""].map((h) => <th key={h} className={th}>{h}</th>)}
               </tr>
             </thead>
             <tbody>
               {rows.map((c) => (
-                <tr key={c.id} className="border-b border-ink-700/60">
+                <tr key={c.id} className="border-b border-line">
                   <td className={`${td} font-medium`}>{c.name}</td>
-                  <td className={`${td} text-white/70`}>{c.state}</td>
-                  <td className={`${td} text-white/70`}>{c.region}</td>
-                  <td className={`${td} font-mono`}>{c.micromarkets}</td>
+                  <td className={`${td} text-ink`}>{c.state}</td>
+                  <td className={`${td} text-ink`}>{c.region}</td>
+                  <td className={`${td} tabular`}>{c.micromarkets}</td>
                   <td className={td}>
                     <select
                       aria-label={`Coverage status for ${c.name}`}
                       value={c.coverage}
                       onChange={(e) => update((s) => ({ ...s, cities: s.cities.map((x) => (x.id === c.id ? { ...x, coverage: e.target.value as AdminCity["coverage"] } : x)) }))}
-                      className="h-7 rounded-xs bg-ink-850 px-2 text-[12px] text-white ring-1 ring-inset ring-ink-600"
+                      className="h-7 rounded-xs bg-white px-2 text-[12px] text-ink ring-1 ring-inset ring-line-strong"
                     >
                       {["live", "illustrative", "planned", "hidden"].map((v) => <option key={v} value={v}>{v}</option>)}
                     </select>
                     <span className="ml-2"><StatusPill tone={COVERAGE_TONE[c.coverage]}>{c.coverage}</StatusPill></span>
                   </td>
                   <td className={`${td} text-right`}>
-                    <button type="button" onClick={() => { setErr(null); setIsNew(false); setEditing(c); }} className="rounded-xs p-1.5 text-muted hover:bg-white/5 hover:text-white" aria-label={`Edit ${c.name}`}>
+                    <button type="button" onClick={() => { setErr(null); setIsNew(false); setEditing(c); }} className="rounded-xs p-1.5 text-ink-2 hover:bg-paper hover:text-ink" aria-label={`Edit ${c.name}`}>
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
                   </td>
@@ -90,8 +90,8 @@ export function CityManagement() {
       <Modal open={!!editing} onClose={() => setEditing(null)} title={isNew ? "Add city" : `Edit ${editing?.name}`} footer={<><Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button><Button onClick={save}>Save</Button></>}>
         {editing && (
           <div className="grid gap-4">
-            <Field label="City name" htmlFor="city-name" skin="dark" required><Input id="city-name" skin="dark" value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} /></Field>
-            <Field label="State" htmlFor="city-state" skin="dark" required><Input id="city-state" skin="dark" value={editing.state} onChange={(e) => setEditing({ ...editing, state: e.target.value })} /></Field>
+            <Field label="City name" htmlFor="city-name" required><Input id="city-name" value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} /></Field>
+            <Field label="State" htmlFor="city-state" required><Input id="city-state" value={editing.state} onChange={(e) => setEditing({ ...editing, state: e.target.value })} /></Field>
             <div className="grid grid-cols-2 gap-3">
               <Select label="Region" value={editing.region} onChange={(e) => setEditing({ ...editing, region: e.target.value })} options={["North", "North · Delhi NCR", "West", "South", "East", "Central"].map((r) => ({ value: r, label: r }))} />
               <Select label="Coverage" value={editing.coverage} onChange={(e) => setEditing({ ...editing, coverage: e.target.value as AdminCity["coverage"] })} options={["live", "illustrative", "planned", "hidden"].map((r) => ({ value: r, label: r }))} />
@@ -146,7 +146,7 @@ export function MicromarketManagement() {
         title={`${rows.length} micromarkets`}
         actions={
           <div className="flex gap-2">
-            <select aria-label="Filter by city" value={city} onChange={(e) => setCity(e.target.value)} className="h-8 rounded-sm bg-ink-850 px-2 text-[12.5px] text-white ring-1 ring-inset ring-ink-600">
+            <select aria-label="Filter by city" value={city} onChange={(e) => setCity(e.target.value)} className="h-8 rounded-sm bg-white px-2 text-[12.5px] text-ink ring-1 ring-inset ring-line-strong">
               <option value="all">All cities</option>
               {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
@@ -156,23 +156,23 @@ export function MicromarketManagement() {
       >
         <div className="max-h-[620px] overflow-auto scrollbar-thin">
           <table className="w-full min-w-[720px]">
-            <thead className="sticky top-0 bg-ink-800">
-              <tr className="border-b border-ink-600/60">
+            <thead className="sticky top-0 bg-white">
+              <tr className="border-b border-line">
                 {["Micromarket", "City", "ID", "Aliases", "Active", ""].map((h) => <th key={h} className={th}>{h}</th>)}
               </tr>
             </thead>
             <tbody>
               {rows.map((m) => (
-                <tr key={m.id} className={cn("border-b border-ink-700/60", !m.active && "opacity-50")}>
+                <tr key={m.id} className={cn("border-b border-line", !m.active && "opacity-50")}>
                   <td className={`${td} font-medium`}>{m.name}</td>
-                  <td className={`${td} text-white/70`}>{cityName(m.cityId)}</td>
-                  <td className={`${td} font-mono text-[12px] text-muted`}>{m.id}</td>
-                  <td className={`${td} text-white/60`}>{m.aliases || "—"}</td>
+                  <td className={`${td} text-ink`}>{cityName(m.cityId)}</td>
+                  <td className={`${td} text-[12px] text-ink-2`}>{m.id}</td>
+                  <td className={`${td} text-ink-2`}>{m.aliases || "—"}</td>
                   <td className={td}>
-                    <input type="checkbox" className="h-4 w-4 accent-signal-500" aria-label={`${m.name} active`} checked={m.active} onChange={(e) => update((s) => ({ ...s, micromarkets: s.micromarkets.map((x) => (x.id === m.id ? { ...x, active: e.target.checked } : x)) }))} />
+                    <input type="checkbox" className="h-4 w-4 accent-brand" aria-label={`${m.name} active`} checked={m.active} onChange={(e) => update((s) => ({ ...s, micromarkets: s.micromarkets.map((x) => (x.id === m.id ? { ...x, active: e.target.checked } : x)) }))} />
                   </td>
                   <td className={`${td} text-right`}>
-                    <button type="button" onClick={() => { setErr(null); setIsNew(false); setEditing(m); }} className="rounded-xs p-1.5 text-muted hover:bg-white/5 hover:text-white" aria-label={`Edit ${m.name}`}>
+                    <button type="button" onClick={() => { setErr(null); setIsNew(false); setEditing(m); }} className="rounded-xs p-1.5 text-ink-2 hover:bg-paper hover:text-ink" aria-label={`Edit ${m.name}`}>
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
                   </td>
@@ -185,9 +185,9 @@ export function MicromarketManagement() {
       <Modal open={!!editing} onClose={() => setEditing(null)} title={isNew ? "Add micromarket" : `Edit ${editing?.name}`} footer={<><Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button><Button onClick={save}>Save</Button></>}>
         {editing && (
           <div className="grid gap-4">
-            <Field label="Micromarket name" htmlFor="mm-name" skin="dark" required><Input id="mm-name" skin="dark" value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} /></Field>
+            <Field label="Micromarket name" htmlFor="mm-name" required><Input id="mm-name" value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} /></Field>
             <Select label="City" value={editing.cityId} disabled={!isNew} onChange={(e) => setEditing({ ...editing, cityId: e.target.value })} options={cities.map((c) => ({ value: c.id, label: c.name }))} />
-            <Field label="Search aliases" htmlFor="mm-aliases" skin="dark" hint="Comma-separated alternative spellings used for matching uploads"><Input id="mm-aliases" skin="dark" value={editing.aliases} onChange={(e) => setEditing({ ...editing, aliases: e.target.value })} /></Field>
+            <Field label="Search aliases" htmlFor="mm-aliases" hint="Comma-separated alternative spellings used for matching uploads"><Input id="mm-aliases" value={editing.aliases} onChange={(e) => setEditing({ ...editing, aliases: e.target.value })} /></Field>
             {err && <p className="text-[12.5px] text-negative" role="alert">{err}</p>}
           </div>
         )}
@@ -235,21 +235,21 @@ export function ClientManagement() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px]">
             <thead>
-              <tr className="border-b border-ink-600/60">
+              <tr className="border-b border-line">
                 {["Organisation", "Type", "Plan", "Users", "Status", "Renewal", ""].map((h) => <th key={h} className={th}>{h}</th>)}
               </tr>
             </thead>
             <tbody>
               {rows.map((c) => (
-                <tr key={c.id} className="border-b border-ink-700/60">
+                <tr key={c.id} className="border-b border-line">
                   <td className={`${td} font-medium`}>{c.name}</td>
-                  <td className={`${td} text-white/70`}>{c.type}</td>
+                  <td className={`${td} text-ink`}>{c.type}</td>
                   <td className={td}>{planName(c.plan)}</td>
-                  <td className={`${td} font-mono`}>{c.users}</td>
+                  <td className={`${td} tabular`}>{c.users}</td>
                   <td className={td}><StatusPill tone={STATUS_TONE[c.status]}>{c.status}</StatusPill></td>
-                  <td className={`${td} text-white/70`}>{new Date(c.renewal).toLocaleDateString("en-IN", { dateStyle: "medium" })}</td>
+                  <td className={`${td} text-ink`}>{new Date(c.renewal).toLocaleDateString("en-IN", { dateStyle: "medium" })}</td>
                   <td className={`${td} text-right`}>
-                    <button type="button" onClick={() => { setErr(null); setIsNew(false); setEditing(c); }} className="rounded-xs p-1.5 text-muted hover:bg-white/5 hover:text-white" aria-label={`Edit ${c.name}`}>
+                    <button type="button" onClick={() => { setErr(null); setIsNew(false); setEditing(c); }} className="rounded-xs p-1.5 text-ink-2 hover:bg-paper hover:text-ink" aria-label={`Edit ${c.name}`}>
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
                   </td>
@@ -262,14 +262,14 @@ export function ClientManagement() {
       <Modal open={!!editing} onClose={() => setEditing(null)} title={isNew ? "Add client" : `Edit ${editing?.name}`} footer={<><Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button><Button onClick={save}>Save</Button></>}>
         {editing && (
           <div className="grid gap-4">
-            <Field label="Organisation name" htmlFor="cl-name" skin="dark" required><Input id="cl-name" skin="dark" value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} /></Field>
+            <Field label="Organisation name" htmlFor="cl-name" required><Input id="cl-name" value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} /></Field>
             <div className="grid grid-cols-2 gap-3">
               <Select label="Type" value={editing.type} onChange={(e) => setEditing({ ...editing, type: e.target.value as AdminClient["type"] })} options={["Developer", "Financial Institution", "Consultancy", "Institution"].map((v) => ({ value: v, label: v }))} />
               <Select label="Plan" value={editing.plan} onChange={(e) => setEditing({ ...editing, plan: e.target.value })} options={plans.map((p) => ({ value: p.id, label: `${p.name} (${p.seats} seats)` }))} />
               <Select label="Status" value={editing.status} onChange={(e) => setEditing({ ...editing, status: e.target.value as AdminClient["status"] })} options={["active", "trial", "suspended"].map((v) => ({ value: v, label: v }))} />
-              <Field label="Users" htmlFor="cl-users" skin="dark"><Input id="cl-users" skin="dark" type="number" min={0} value={editing.users} onChange={(e) => setEditing({ ...editing, users: Number(e.target.value) })} /></Field>
+              <Field label="Users" htmlFor="cl-users"><Input id="cl-users" type="number" min={0} value={editing.users} onChange={(e) => setEditing({ ...editing, users: Number(e.target.value) })} /></Field>
             </div>
-            <Field label="Renewal date" htmlFor="cl-renewal" skin="dark"><Input id="cl-renewal" skin="dark" type="date" value={editing.renewal} onChange={(e) => setEditing({ ...editing, renewal: e.target.value })} /></Field>
+            <Field label="Renewal date" htmlFor="cl-renewal"><Input id="cl-renewal" type="date" value={editing.renewal} onChange={(e) => setEditing({ ...editing, renewal: e.target.value })} /></Field>
             {err && <p className="text-[12.5px] text-negative" role="alert">{err}</p>}
           </div>
         )}

@@ -15,7 +15,7 @@ import { ChartPanel, type TableData } from "@/components/charts/chart-panel";
 import { Select } from "@/components/ui/form-controls";
 import { Segmented } from "@/components/ui/segmented";
 import { WorkspacePageHeader } from "@/components/dashboard/page-header";
-import { useRegisterExport, useWorkspace } from "@/components/dashboard/workspace-context";
+import { useRegisterExport, useViewFilters, useWorkspace } from "@/components/dashboard/workspace-context";
 
 type Metric = "demand" | "supply" | "avgPrice" | "inventory" | "dsRatio";
 const METRICS: { value: Metric; label: string; fmt: (v: number | null) => string; color: string }[] = [
@@ -37,7 +37,8 @@ function annualValue(points: TrendPoint[], metric: Metric): number | null {
 }
 
 export function HistoryModule() {
-  const { filters, catalog } = useWorkspace();
+  const { catalog } = useWorkspace();
+  const { filters, key } = useViewFilters("history");
   const svc = getMarketDataService();
   const [metric, setMetric] = useState<Metric>("demand");
   const years = catalog?.years ?? [];
@@ -48,8 +49,8 @@ export function HistoryModule() {
   const [a, setA] = useState<{ from: PeriodRef; to: PeriodRef }>({ from: { year: latest.year - 1, quarter: 1 }, to: { year: latest.year - 1, quarter: latest.quarter } });
   const [b, setB] = useState<{ from: PeriodRef; to: PeriodRef }>({ from: { year: latest.year, quarter: 1 }, to: latest });
 
-  const scope = { cityId: filters.cityId, micromarketId: filters.micromarketId, propertyType: filters.propertyType };
-  const { data: history, loading } = useAsync(() => svc.getHistory(scope), [filters.cityId, filters.micromarketId, filters.propertyType]);
+  const scope = filters;
+  const { data: history, loading } = useAsync(() => svc.getHistory(scope), [key]);
 
   const validA = comparePeriods(a.from, a.to) <= 0;
   const validB = comparePeriods(b.from, b.to) <= 0;
@@ -57,7 +58,7 @@ export function HistoryModule() {
     if (!validA || !validB) return null;
     const [ra, rb] = await Promise.all([svc.getRangeAggregate(scope, a.from, a.to), svc.getRangeAggregate(scope, b.from, b.to)]);
     return { ra, rb };
-  }, [filters.cityId, filters.micromarketId, filters.propertyType, JSON.stringify(a), JSON.stringify(b)]);
+  }, [key, JSON.stringify(a), JSON.stringify(b)]);
 
   const m = METRICS.find((x) => x.value === metric)!;
   const yearColor = (y: number) => chartColors.categorical[years.indexOf(y) % chartColors.categorical.length];
@@ -95,7 +96,7 @@ export function HistoryModule() {
     const [y, q] = v.split("-").map(Number);
     return { year: y, quarter: q as Quarter };
   };
-  const key = (p: PeriodRef) => `${p.year}-${p.quarter}`;
+  const pkey = (p: PeriodRef) => `${p.year}-${p.quarter}`;
 
   const cmpRows = cmp?.ra && cmp?.rb
     ? [
@@ -121,17 +122,16 @@ export function HistoryModule() {
   return (
     <div>
       <WorkspacePageHeader
-        code="ANALYST · H"
+        kicker="Analyst · History"
         title="Historical Analysis"
-        description="Navigate the full quarterly history, overlay years to isolate seasonality, and compare any two periods. Geography and property type follow the global filters."
+        description="Navigate the full quarterly history, overlay years to isolate seasonality, and compare any two periods. Geography and configuration follow the filters above."
         actions={<Segmented ariaLabel="Metric" size="md" value={metric} onChange={setMetric} options={METRICS.map((x) => ({ value: x.value, label: x.label }))} />}
       />
 
-      <ChartPanel code="H.1" title={`${m.label} — full history`} subtitle={`${history?.[0]?.label ?? ""} to ${history?.[history.length - 1]?.label ?? ""}, quarterly`} option={opts?.full ?? null} table={history ? trendTable(history) : undefined} loading={loading} height={300} />
+      <ChartPanel title={`${m.label} — full history`} subtitle={`${history?.[0]?.label ?? ""} to ${history?.[history.length - 1]?.label ?? ""}, quarterly`} option={opts?.full ?? null} table={history ? trendTable(history) : undefined} loading={loading} height={300} />
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-2">
+      <div className="mt-6 grid gap-6 xl:grid-cols-2">
         <ChartPanel
-          code="H.2"
           title="Year-over-year overlay"
           subtitle="Each line is one year, plotted Q1–Q4"
           option={opts?.overlay ?? null}
@@ -150,7 +150,7 @@ export function HistoryModule() {
                       const next = on ? activeYears.filter((x) => x !== y) : [...activeYears, y].sort();
                       setPicked(next.length ? next : [y]);
                     }}
-                    className={cn("inline-flex h-7 items-center gap-1.5 rounded-xs px-2 font-mono text-[11.5px] ring-1 ring-inset", on ? "bg-white/[0.06] text-white ring-ink-500" : "text-muted ring-ink-600")}
+                    className={cn("inline-flex h-7 items-center gap-1.5 rounded-xs px-2 text-[11.5px] ring-1 ring-inset", on ? "bg-mist text-ink ring-ink-2/50" : "text-ink-2 ring-line-strong")}
                   >
                     <span className="h-2 w-2 rounded-[2px]" style={{ background: on ? yearColor(y) : "transparent", boxShadow: on ? undefined : "inset 0 0 0 1px #5B6779" }} aria-hidden />
                     {y}
@@ -160,32 +160,31 @@ export function HistoryModule() {
             </div>
           }
         />
-        <ChartPanel code="H.3" title={`Annual ${m.label.toLowerCase()}`} subtitle={metric === "inventory" ? "Unsold units at year end (or latest quarter)" : metric === "avgPrice" || metric === "dsRatio" ? "Supply-weighted annual value" : "Sum of quarters"} option={opts?.annual ?? null} table={annualTbl} loading={loading} height={320} />
+        <ChartPanel title={`Annual ${m.label.toLowerCase()}`} subtitle={metric === "inventory" ? "Unsold units at year end (or latest quarter)" : metric === "avgPrice" || metric === "dsRatio" ? "Supply-weighted annual value" : "Sum of quarters"} option={opts?.annual ?? null} table={annualTbl} loading={loading} height={320} />
       </div>
 
-      <section className="frame mt-4 rounded-xs bg-ink-800 ring-1 ring-inset ring-ink-600/60" aria-label="Period comparison">
-        <header className="border-b border-ink-600/50 px-5 py-4">
-          <span className="eyebrow text-signal-400">H.4</span>
-          <h3 className="mt-1 text-[15px] font-semibold text-white">Compare two periods</h3>
-          <p className="mt-0.5 text-[12.5px] text-muted">Pick any start and end quarter for each period. Flows (demand, supply) are summed; price is supply-weighted; inventory is taken at period end.</p>
+      <section className="mt-6 rounded-sm border border-line" aria-label="Period comparison">
+        <header className="border-b border-line px-5 py-4">
+          <h3 className="text-[15px] font-semibold text-ink">Compare two periods</h3>
+          <p className="mt-0.5 text-[12.5px] text-ink-2">Pick any start and end quarter for each period. Flows (demand, supply) are summed; price is supply-weighted; inventory is taken at period end.</p>
         </header>
         <div className="grid gap-4 p-5 lg:grid-cols-[1fr_auto_1fr]">
           {[
             { name: "Period A", v: a, set: setA, valid: validA, len: lenA },
             { name: "Period B", v: b, set: setB, valid: validB, len: lenB },
           ].map((p, i) => (
-            <div key={p.name} className={cn("rounded-xs bg-ink-900/60 p-4 ring-1 ring-inset", p.valid ? "ring-ink-600/60" : "ring-negative/60", i === 1 && "lg:order-3")}>
-              <p className="text-[13px] font-medium text-white">
-                {p.name} <span className="ml-1 font-mono text-[11px] text-muted">{p.valid ? `${p.len} quarter${p.len > 1 ? "s" : ""}` : ""}</span>
+            <div key={p.name} className={cn("rounded-xs bg-paper p-4 ring-1 ring-inset", p.valid ? "ring-line" : "ring-negative/50", i === 1 && "lg:order-3")}>
+              <p className="text-[13px] font-medium text-ink">
+                {p.name} <span className="ml-1 text-[11px] text-ink-2">{p.valid ? `${p.len} quarter${p.len > 1 ? "s" : ""}` : ""}</span>
               </p>
               <div className="mt-3 grid grid-cols-2 gap-3">
-                <Select label="From" size="sm" value={key(p.v.from)} onChange={(e) => p.set({ ...p.v, from: parse(e.target.value) })} options={periodOptions} />
-                <Select label="To" size="sm" value={key(p.v.to)} onChange={(e) => p.set({ ...p.v, to: parse(e.target.value) })} options={periodOptions} />
+                <Select label="From" size="sm" value={pkey(p.v.from)} onChange={(e) => p.set({ ...p.v, from: parse(e.target.value) })} options={periodOptions} />
+                <Select label="To" size="sm" value={pkey(p.v.to)} onChange={(e) => p.set({ ...p.v, to: parse(e.target.value) })} options={periodOptions} />
               </div>
               {!p.valid && <p className="mt-2 text-[12px] text-negative">“From” must be on or before “To”.</p>}
             </div>
           ))}
-          <div className="hidden items-center justify-center text-muted lg:order-2 lg:flex">
+          <div className="hidden items-center justify-center text-ink-2 lg:order-2 lg:flex">
             <ArrowRight className="h-5 w-5" aria-hidden />
           </div>
         </div>
@@ -195,7 +194,7 @@ export function HistoryModule() {
         <div className="overflow-x-auto px-5 pb-5">
           <table className={cn("w-full min-w-[560px] text-[13px] transition-opacity", cmpLoading && "opacity-50")}>
             <thead>
-              <tr className="border-b border-ink-600 text-muted">
+              <tr className="border-b border-line-strong text-ink-2">
                 <th scope="col" className="py-2 text-left font-medium">Indicator</th>
                 <th scope="col" className="py-2 text-right font-medium">Period A</th>
                 <th scope="col" className="py-2 text-right font-medium">Period B</th>
@@ -206,17 +205,17 @@ export function HistoryModule() {
               {cmpRows.map((r) => {
                 const ch = r.a && r.b !== null ? ((r.b - r.a) / r.a) * 100 : null;
                 return (
-                  <tr key={r.label} className="border-b border-ink-700/60">
-                    <th scope="row" className="py-2.5 text-left font-normal text-white/85">{r.label}</th>
-                    <td className="py-2.5 text-right font-mono text-white/80">{r.fmt(r.a)}</td>
-                    <td className="py-2.5 text-right font-mono text-white/80">{r.fmt(r.b)}</td>
-                    <td className={cn("py-2.5 text-right font-mono", ch === null ? "text-muted" : ch >= 0 ? "text-positive" : "text-negative")}>{formatPct(ch)}</td>
+                  <tr key={r.label} className="border-b border-line">
+                    <th scope="row" className="py-2.5 text-left font-normal text-ink">{r.label}</th>
+                    <td className="py-2.5 text-right text-ink">{r.fmt(r.a)}</td>
+                    <td className="py-2.5 text-right text-ink">{r.fmt(r.b)}</td>
+                    <td className={cn("py-2.5 text-right", ch === null ? "text-ink-2" : ch >= 0 ? "text-positive" : "text-negative")}>{formatPct(ch)}</td>
                   </tr>
                 );
               })}
               {!cmpRows.length && (
                 <tr>
-                  <td colSpan={4} className="py-6 text-center text-muted">
+                  <td colSpan={4} className="py-6 text-center text-ink-2">
                     {validA && validB ? "No data for the selected periods." : "Fix the period selection above."}
                   </td>
                 </tr>

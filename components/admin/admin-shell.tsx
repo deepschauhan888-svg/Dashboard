@@ -12,7 +12,6 @@ import {
   LogOut,
   MapPinned,
   Menu,
-  Settings,
   ShieldAlert,
   Upload,
   Users,
@@ -37,7 +36,6 @@ export const ADMIN_NAV = [
   { href: "/admin/clients", label: "Client Management", icon: Users },
   { href: "/admin/subscriptions", label: "Subscriptions", icon: CreditCard },
   { href: "/admin/permissions", label: "Access Permissions", icon: KeyRound },
-  { href: "/admin/settings", label: "Platform Settings", icon: Settings },
 ] as const;
 
 export function AdminShell({ children }: { children: ReactNode }) {
@@ -53,16 +51,16 @@ export function AdminShell({ children }: { children: ReactNode }) {
   }, [ready, session, router]);
 
   if (!ready || !session) {
-    return <div className="flex min-h-screen items-center justify-center bg-ink-900 text-[13px] text-muted">Opening admin console…</div>;
+    return <div className="flex min-h-screen items-center justify-center bg-white text-[13px] text-ink-2">Opening admin console…</div>;
   }
 
   if (session.user.role !== "mb_admin") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-ink-900 px-6 text-white">
+      <div className="flex min-h-screen items-center justify-center bg-white px-6 text-ink">
         <div className="max-w-md text-center">
           <ShieldAlert className="mx-auto h-8 w-8 text-caution" aria-hidden />
           <h1 className="mt-4 text-[24px] font-semibold">Administrator access required</h1>
-          <p className="mt-2 text-[14px] text-white/60">Your demo session is a client workspace. Switch to the demo administrator persona to explore the admin console.</p>
+          <p className="mt-2 text-[14px] text-ink-2">Your demo session is a client workspace. Switch to the demo administrator persona to explore the admin console.</p>
           <div className="mt-6 flex justify-center gap-3">
             <Button
               onClick={async () => {
@@ -74,7 +72,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             >
               {switching && <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden />} Switch to demo admin
             </Button>
-            <Link href="/dashboard" className="inline-flex h-10 items-center rounded-sm px-4 text-sm ring-1 ring-inset ring-white/20 hover:ring-white/40">
+            <Link href="/dashboard" className="inline-flex h-10 items-center rounded-sm px-4 text-sm ring-1 ring-inset ring-line hover:ring-ink-2/50">
               Back to workspace
             </Link>
           </div>
@@ -85,28 +83,28 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   return (
     <AdminStoreProvider>
-      <div className="min-h-screen bg-ink-900 text-white">
-        <aside className={cn("fixed inset-y-0 left-0 z-40 flex w-[240px] flex-col border-r border-ink-600/60 bg-ink-950 transition-transform lg:translate-x-0", open ? "translate-x-0" : "-translate-x-full")} aria-label="Admin navigation">
-          <div className="flex h-16 items-center justify-between border-b border-ink-600/60 px-5">
+      <div className="min-h-screen bg-white text-ink">
+        <aside className={cn("fixed inset-y-0 left-0 z-40 flex w-[240px] flex-col border-r border-line bg-paper transition-transform lg:translate-x-0", open ? "translate-x-0" : "-translate-x-full")} aria-label="Admin navigation">
+          <div className="flex h-16 items-center justify-between border-b border-line px-5">
             <Logo />
-            <button type="button" className="p-1 text-muted lg:hidden" onClick={() => setOpen(false)} aria-label="Close navigation">
+            <button type="button" className="p-1 text-ink-2 lg:hidden" onClick={() => setOpen(false)} aria-label="Close navigation">
               <X className="h-5 w-5" />
             </button>
           </div>
-          <p className="eyebrow mt-5 px-6 !text-[10px] text-caution">Admin console</p>
+          <p className="kicker mt-5 px-6 !text-[10px] text-caution">Admin console</p>
           <nav className="mt-3 flex-1 space-y-0.5 overflow-y-auto px-3 scrollbar-thin">
             {ADMIN_NAV.map((n) => {
               const active = n.href === "/admin" ? pathname === "/admin" : pathname.startsWith(n.href);
               return (
-                <Link key={n.href} href={n.href} aria-current={active ? "page" : undefined} className={cn("flex items-center gap-3 rounded-xs px-3 py-2 text-[13.5px]", active ? "bg-ink-750 text-white" : "text-white/60 hover:bg-white/[0.03] hover:text-white")}>
-                  <n.icon className={cn("h-4 w-4", active ? "text-signal-400" : "text-muted")} strokeWidth={1.75} aria-hidden />
+                <Link key={n.href} href={n.href} aria-current={active ? "page" : undefined} className={cn("flex items-center gap-3 rounded-xs px-3 py-2 text-[13.5px]", active ? "bg-brand-tint text-ink" : "text-ink-2 hover:bg-paper hover:text-ink")}>
+                  <n.icon className={cn("h-4 w-4", active ? "text-brand" : "text-ink-2")} strokeWidth={1.75} aria-hidden />
                   {n.label}
                 </Link>
               );
             })}
           </nav>
-          <div className="space-y-2 border-t border-ink-600/60 p-4">
-            <Link href="/dashboard" className="flex items-center gap-2 text-[13px] text-white/60 hover:text-white">
+          <div className="space-y-2 border-t border-line p-4">
+            <Link href="/dashboard" className="flex items-center gap-2 text-[13px] text-ink-2 hover:text-ink">
               <ArrowLeft className="h-4 w-4" aria-hidden /> Client workspace
             </Link>
             <button
@@ -115,22 +113,22 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 await signOut();
                 router.push("/login");
               }}
-              className="flex items-center gap-2 text-[13px] text-white/60 hover:text-white"
+              className="flex items-center gap-2 text-[13px] text-ink-2 hover:text-ink"
             >
               <LogOut className="h-4 w-4" aria-hidden /> Sign out
             </button>
           </div>
         </aside>
-        {open && <div className="fixed inset-0 z-30 bg-ink-950/70 lg:hidden" onClick={() => setOpen(false)} aria-hidden />}
+        {open && <div className="fixed inset-0 z-30 bg-paper/70 lg:hidden" onClick={() => setOpen(false)} aria-hidden />}
         <div className="lg:pl-[240px]">
-          <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-4 border-b border-ink-600/60 bg-ink-900/95 px-5 backdrop-blur sm:px-8">
+          <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-4 border-b border-line bg-white/95 px-5 backdrop-blur sm:px-8">
             <div className="flex items-center gap-3">
               <button type="button" className="p-1.5 lg:hidden" onClick={() => setOpen(true)} aria-label="Open navigation">
                 <Menu className="h-5 w-5" />
               </button>
               <div>
                 <p className="text-[14px] font-medium">{session.user.name}</p>
-                <p className="text-[12px] text-muted">{session.user.designation}</p>
+                <p className="text-[12px] text-ink-2">{session.user.designation}</p>
               </div>
             </div>
             <p className="hidden max-w-md rounded-xs bg-caution/10 px-3 py-1.5 text-[12px] text-caution ring-1 ring-inset ring-caution/30 md:block">
@@ -148,9 +146,9 @@ export function AdminPageHeader({ title, description, actions }: { title: string
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <p className="eyebrow text-caution">Admin</p>
+        <p className="kicker text-caution">Admin</p>
         <h1 className="mt-1.5 text-[26px] font-semibold tracking-tight">{title}</h1>
-        <p className="mt-1 max-w-3xl text-[14px] text-white/55">{description}</p>
+        <p className="mt-1 max-w-3xl text-[14px] text-ink-2">{description}</p>
       </div>
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
     </div>
@@ -159,9 +157,9 @@ export function AdminPageHeader({ title, description, actions }: { title: string
 
 export function Panel({ title, children, actions, className }: { title?: string; children: ReactNode; actions?: ReactNode; className?: string }) {
   return (
-    <section className={cn("rounded-xs bg-ink-800 ring-1 ring-inset ring-ink-600/60", className)} aria-label={title}>
+    <section className={cn("rounded-xs bg-white ring-1 ring-inset ring-line", className)} aria-label={title}>
       {title && (
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-ink-600/50 px-5 py-3.5">
+        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-3.5">
           <h2 className="text-[14.5px] font-semibold">{title}</h2>
           {actions}
         </header>
@@ -171,5 +169,5 @@ export function Panel({ title, children, actions, className }: { title?: string;
   );
 }
 
-export const th = "px-4 py-2.5 text-left text-[12px] font-medium text-muted";
+export const th = "px-4 py-2.5 text-left text-[12px] font-medium text-ink-2";
 export const td = "px-4 py-2.5 text-[13px]";

@@ -24,6 +24,8 @@ export function DatasetUpload() {
   const [year, setYear] = useState(catalog.latestPeriod.year);
   const [quarter, setQuarter] = useState<number>(catalog.latestPeriod.quarter);
   const [cityId, setCityId] = useState<string>("all");
+  const [micromarketId, setMicromarketId] = useState<string>("all");
+  const cityObj = catalog.cities.find((c) => c.city_id === cityId);
   const [file, setFile] = useState<{ name: string; size: number; text: string | null; kind: "csv" | "excel" } | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [drag, setDrag] = useState(false);
@@ -59,7 +61,7 @@ export function DatasetUpload() {
   }
 
   function loadSample(withErrors: boolean) {
-    const csv = buildTemplateCsv(getDemoRecords(), year, quarter, cityId, withErrors);
+    const csv = buildTemplateCsv(getDemoRecords(), year, quarter, cityId, withErrors, micromarketId);
     setFileError(null);
     setReport(null);
     setPublished(null);
@@ -70,7 +72,7 @@ export function DatasetUpload() {
     if (!file?.text) return;
     setBusy("validate");
     await new Promise((r) => setTimeout(r, 600));
-    const r = validateDataset(file.text, { fileName: file.name, datasetType, year, quarter, cityId, catalog });
+    const r = validateDataset(file.text, { fileName: file.name, datasetType, year, quarter, cityId, micromarketId, catalog });
     setReport(r);
     update((s) => ({ ...s, lastReport: r }));
     setBusy(null);
@@ -134,7 +136,7 @@ export function DatasetUpload() {
         title="Dataset Upload"
         description="Upload a quarterly dataset, validate it against the platform schema and publish it as a new version. In this demo, validation runs in your browser and publishing updates the demo history only."
         actions={
-          <Button variant="secondary" size="sm" onClick={() => downloadBlob(buildTemplateCsv(getDemoRecords(), year, quarter, cityId), `mbri_template_${year}_Q${quarter}.csv`, "text/csv")}>
+          <Button variant="secondary" size="sm" onClick={() => downloadBlob(buildTemplateCsv(getDemoRecords(), year, quarter, cityId, false, micromarketId), `mbri_template_${year}_Q${quarter}.csv`, "text/csv")}>
             <Download className="h-3.5 w-3.5" aria-hidden /> Download CSV template
           </Button>
         }
@@ -146,9 +148,9 @@ export function DatasetUpload() {
           const done = n < step || (n === 4 && !!published);
           const current = n === step && !published;
           return (
-            <li key={s} aria-current={current ? "step" : undefined} className={cn("flex items-center gap-2.5 rounded-xs px-3 py-2.5 text-[13px] ring-1 ring-inset", current ? "bg-ink-750 ring-signal-500/50" : done ? "bg-ink-800 ring-ink-600/60" : "ring-ink-700")}>
-              <span className={cn("flex h-5 w-5 items-center justify-center rounded-full font-mono text-[10.5px]", done ? "bg-positive text-ink-900" : current ? "bg-signal-500 text-white" : "bg-ink-700 text-muted")}>{done ? "✓" : n}</span>
-              <span className={current || done ? "text-white" : "text-muted"}>{s}</span>
+            <li key={s} aria-current={current ? "step" : undefined} className={cn("flex items-center gap-2.5 rounded-xs px-3 py-2.5 text-[13px] ring-1 ring-inset", current ? "bg-brand-tint ring-brand/40" : done ? "bg-white ring-line" : "ring-line")}>
+              <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[10.5px]", done ? "bg-positive text-white" : current ? "bg-brand text-white" : "bg-mist text-ink-2")}>{done ? "✓" : n}</span>
+              <span className={current || done ? "text-ink" : "text-ink-2"}>{s}</span>
             </li>
           );
         })}
@@ -162,8 +164,11 @@ export function DatasetUpload() {
               <Select label="Reporting year" value={String(year)} onChange={(e) => setYear(Number(e.target.value))} options={[...catalog.years, catalog.latestPeriod.year + 1].map((y) => ({ value: String(y), label: String(y) }))} />
               <Select label="Reporting quarter" value={String(quarter)} onChange={(e) => setQuarter(Number(e.target.value))} options={[1, 2, 3, 4].map((q) => ({ value: String(q), label: `Q${q}` }))} />
             </div>
-            <Select label="City" value={cityId} onChange={(e) => setCityId(e.target.value)} options={[{ value: "all", label: "All cities (national file)" }, ...catalog.cities.map((c) => ({ value: c.city_id, label: c.city_name }))]} />
-            <p className="text-[12px] leading-relaxed text-muted">Only “Market facts” is enabled in the demo. Other dataset types are listed to show the planned structure.</p>
+            <div className="grid grid-cols-2 gap-3">
+              <Select label="City" value={cityId} onChange={(e) => { setCityId(e.target.value); setMicromarketId("all"); }} options={[{ value: "all", label: "All cities" }, ...catalog.cities.map((c) => ({ value: c.city_id, label: c.city_name }))]} />
+              <Select label="Micromarket" value={micromarketId} disabled={!cityObj} onChange={(e) => setMicromarketId(e.target.value)} options={[{ value: "all", label: cityObj ? "All micromarkets" : "Select a city" }, ...(cityObj?.micromarkets.map((m) => ({ value: m.micromarket_id, label: m.micromarket_name })) ?? [])]} />
+            </div>
+            <p className="text-[12px] leading-relaxed text-ink-2">Only “Market facts” is enabled in the demo. Other dataset types are listed to show the planned structure.</p>
           </div>
         </Panel>
 
@@ -177,13 +182,13 @@ export function DatasetUpload() {
                 }}
                 onDragLeave={() => setDrag(false)}
                 onDrop={onDrop}
-                className={cn("flex flex-col items-center justify-center rounded-xs border border-dashed px-6 py-12 text-center transition-colors", drag ? "border-signal-500 bg-signal-500/[0.06]" : "border-ink-500")}
+                className={cn("flex flex-col items-center justify-center rounded-xs border border-dashed px-6 py-12 text-center transition-colors", drag ? "border-brand bg-brand-tint" : "border-line-strong")}
               >
-                <CloudUpload className="h-8 w-8 text-signal-400" aria-hidden />
+                <CloudUpload className="h-8 w-8 text-brand" aria-hidden />
                 <p className="mt-3 text-[14.5px] font-medium">Drag and drop a CSV or Excel file</p>
-                <p className="mt-1 text-[12.5px] text-muted">Up to 15 MB · .csv, .xlsx, .xls</p>
+                <p className="mt-1 text-[12.5px] text-ink-2">Up to 15 MB · .csv, .xlsx, .xls</p>
                 <div className="mt-5 flex flex-wrap justify-center gap-2">
-                  <Button size="sm" onClick={() => inputRef.current?.click()}>
+                  <Button size="sm" variant="primary" onClick={() => inputRef.current?.click()}>
                     Browse files
                   </Button>
                   <Button size="sm" variant="secondary" onClick={() => loadSample(false)}>
@@ -198,17 +203,17 @@ export function DatasetUpload() {
               </div>
             ) : (
               <div>
-                <div className="flex items-center justify-between gap-3 rounded-xs bg-ink-900/60 p-4 ring-1 ring-inset ring-ink-600/60">
+                <div className="flex items-center justify-between gap-3 rounded-xs bg-paper p-4 ring-1 ring-inset ring-line">
                   <div className="flex min-w-0 items-center gap-3">
-                    <FileSpreadsheet className="h-6 w-6 shrink-0 text-signal-400" aria-hidden />
+                    <FileSpreadsheet className="h-6 w-6 shrink-0 text-brand" aria-hidden />
                     <div className="min-w-0">
                       <p className="truncate text-[14px] font-medium">{file.name}</p>
-                      <p className="text-[12px] text-muted">
-                        {(file.size / 1024).toFixed(1)} KB · {file.kind === "csv" ? "CSV" : "Excel workbook"} · for Q{quarter} {year} · {cityId === "all" ? "all cities" : catalog.cities.find((c) => c.city_id === cityId)?.city_name}
+                      <p className="text-[12px] text-ink-2">
+                        {(file.size / 1024).toFixed(1)} KB · {file.kind === "csv" ? "CSV" : "Excel workbook"} · for Q{quarter} {year} · {cityId === "all" ? "all cities" : `${micromarketId !== "all" ? `${cityObj?.micromarkets.find((m) => m.micromarket_id === micromarketId)?.micromarket_name}, ` : ""}${cityObj?.city_name}`}
                       </p>
                     </div>
                   </div>
-                  <button type="button" onClick={reset} className="rounded-xs p-1.5 text-muted hover:bg-white/5 hover:text-white" aria-label="Remove file">
+                  <button type="button" onClick={reset} className="rounded-xs p-1.5 text-ink-2 hover:bg-paper hover:text-ink" aria-label="Remove file">
                     <X className="h-4 w-4" />
                   </button>
                 </div>
@@ -224,7 +229,7 @@ export function DatasetUpload() {
                     </Button>
                     {report && (
                       <>
-                        <Button onClick={publish} disabled={!report.publishable || busy !== null || !!published}>
+                        <Button variant="primary" onClick={publish} disabled={!report.publishable || busy !== null || !!published}>
                           {busy === "publish" ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden /> : <Rocket className="h-4 w-4" aria-hidden />}
                           Publish as new version
                         </Button>
@@ -240,9 +245,9 @@ export function DatasetUpload() {
                 {published && (
                   <div className="mt-4 rounded-xs bg-positive/[0.08] p-4 text-[13.5px] ring-1 ring-inset ring-positive/30" role="status">
                     <p className="font-medium text-positive">Published as version v{published} (demo).</p>
-                    <p className="mt-1 text-white/65">
+                    <p className="mt-1 text-ink-2">
                       The dashboards continue to read the built-in demonstration dataset; in production, this step promotes the validated version to live. See{" "}
-                      <Link href="/admin/history" className="text-signal-400 underline-offset-2 hover:underline">
+                      <Link href="/admin/history" className="text-brand underline-offset-2 hover:underline">
                         Upload history
                       </Link>{" "}
                       for rollback.

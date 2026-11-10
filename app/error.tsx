@@ -9,15 +9,15 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
   }, [error]);
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-ink-900 px-6 text-center text-white">
-      <p className="font-mono text-[13px] tracking-[0.3em] text-negative">UNEXPECTED ERROR</p>
-      <h1 className="mt-4 text-[32px] font-semibold tracking-tight">Something went wrong.</h1>
-      <p className="mt-3 max-w-md text-white/60">The view failed to render. You can retry, or return to the home page.</p>
+    <main className="flex min-h-screen flex-col items-center justify-center bg-white px-6 text-center">
+      <p className="kicker text-negative">UNEXPECTED ERROR</p>
+      <h1 className="mt-4 display text-[34px]">Something went wrong.</h1>
+      <p className="mt-3 max-w-md text-ink-2">The view failed to render. You can retry, or return to the home page.</p>
       <div className="mt-8 flex gap-3">
-        <button onClick={reset} className="h-10 rounded-sm bg-signal-500 px-4 text-sm font-medium text-white hover:bg-signal-400">
+        <button onClick={reset} className="h-10 rounded-sm bg-brand px-4 text-sm font-medium text-white hover:bg-brand-dark">
           Try again
         </button>
-        <a href="/" className="inline-flex h-10 items-center rounded-sm px-4 text-sm font-medium ring-1 ring-inset ring-white/20 hover:ring-white/40">
+        <a href="/" className="inline-flex h-10 items-center rounded-sm px-4 text-sm font-medium ring-1 ring-inset ring-line-strong hover:ring-ink/40">
           Home
         </a>
       </div>

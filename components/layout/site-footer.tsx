@@ -1,75 +1,56 @@
 import Link from "next/link";
 import { legalNav, primaryNav, siteConfig } from "@/lib/config/site";
-import { PUBLICATION_CATEGORIES } from "@/lib/config/publications";
 import { Logo } from "@/components/ui/logo";
 
-function ConfigValue({ value, label }: { value: string | null; label: string }) {
-  return value ? <span>{value}</span> : <span className="text-white/35">{label} — to be configured</span>;
-}
-
+/** Charcoal footer band. Shows only configured contact details — nothing unconfirmed. */
 export function SiteFooter() {
+  const contact = [siteConfig.contact.email, siteConfig.contact.phone, siteConfig.contact.address].filter((v): v is string => !!v);
   const socials = Object.entries(siteConfig.social).filter(([, v]) => v) as [string, string][];
   const year = new Date().getFullYear();
   return (
-    <footer className="relative overflow-hidden bg-ink-950 text-white">
-      <div className="grid-lines pointer-events-none absolute inset-0 opacity-60" aria-hidden />
-      <div className="relative mx-auto max-w-[1320px] px-5 pb-10 pt-20 sm:px-8">
-        <div className="grid gap-12 lg:grid-cols-12">
-          <div className="lg:col-span-4">
-            <Logo />
-            <p className="mt-6 max-w-sm text-[14px] leading-relaxed text-white/55">{siteConfig.tagline}</p>
-            <p className="mt-6 max-w-sm text-[12.5px] leading-relaxed text-white/40">
-              A product of MB Research, the research and analytics division of {siteConfig.parentBrand}.
-            </p>
+    <footer className="bg-charcoal text-white">
+      <div className="mx-auto max-w-[1280px] px-5 pb-10 pt-16 sm:px-8">
+        <div className="grid gap-10 md:grid-cols-12">
+          <div className="md:col-span-5">
+            <Logo inverse />
+            <p className="mt-6 max-w-sm font-serif text-[19px] leading-snug text-white/85">{siteConfig.tagline}</p>
           </div>
-
-          <FooterCol title="Navigate">
-            {primaryNav.map((n) => (
-              <FooterLink key={n.href} href={n.href}>
-                {n.label}
-              </FooterLink>
-            ))}
-            <FooterLink href="/login">Client Login</FooterLink>
-          </FooterCol>
-
-          <FooterCol title="Publications">
-            {PUBLICATION_CATEGORIES.map((c) => (
-              <FooterLink key={c.id} href={`/publications?category=${encodeURIComponent(c.id)}`}>
-                {c.id}
-              </FooterLink>
-            ))}
-          </FooterCol>
-
-          <div className="lg:col-span-3">
-            <h2 className="eyebrow text-white/40">Contact</h2>
-            <ul className="mt-5 space-y-3 text-[13.5px] text-white/70">
-              <li>
-                <ConfigValue value={siteConfig.contact.email} label="Email" />
-              </li>
-              <li>
-                <ConfigValue value={siteConfig.contact.phone} label="Phone" />
-              </li>
-              <li>
-                <ConfigValue value={siteConfig.contact.address} label="Address" />
-              </li>
+          <nav aria-label="Footer" className="md:col-span-3">
+            <ul className="space-y-2.5">
+              {primaryNav.map((n) => (
+                <li key={n.href}>
+                  <Link href={n.href} className="text-[14px] text-white/65 transition-colors hover:text-white">
+                    {n.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
-            <div className="mt-6 flex gap-4 text-[13px]">
-              {socials.length ? (
-                socials.map(([k, v]) => (
+          </nav>
+          <div className="md:col-span-4">
+            {contact.length > 0 && (
+              <ul className="mb-6 space-y-2 text-[14px] text-white/75">
+                {contact.map((c) => (
+                  <li key={c}>{c}</li>
+                ))}
+              </ul>
+            )}
+            <Link href="/contact" className="inline-flex h-10 items-center rounded-sm bg-white px-4 text-[14px] font-medium text-ink hover:bg-mist">
+              Make an enquiry
+            </Link>
+            {socials.length > 0 && (
+              <div className="mt-6 flex gap-5 text-[13px]">
+                {socials.map(([k, v]) => (
                   <a key={k} href={v} target="_blank" rel="noopener noreferrer" className="capitalize text-white/60 hover:text-white">
                     {k === "x" ? "X" : k}
                   </a>
-                ))
-              ) : (
-                <span className="text-white/35">Social channels — to be configured</span>
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-
-        <div className="mt-16 flex flex-col gap-4 border-t border-white/10 pt-6 text-[12px] text-white/40 md:flex-row md:items-center md:justify-between">
+        <div className="mt-14 flex flex-col gap-4 border-t border-white/10 pt-6 text-[12.5px] text-white/45 md:flex-row md:items-center md:justify-between">
           <p>
-            © {year} {siteConfig.parentBrand}. MB Research Intelligence. All figures shown in this showcase are demonstration data.
+            © {year} {siteConfig.parentBrand}. MB Research Intelligence is a product of MB Research.
           </p>
           <nav aria-label="Legal" className="flex flex-wrap gap-5">
             {legalNav.map((l) => (
@@ -81,24 +62,5 @@ export function SiteFooter() {
         </div>
       </div>
     </footer>
-  );
-}
-
-function FooterCol({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="lg:col-span-2">
-      <h2 className="eyebrow text-white/40">{title}</h2>
-      <ul className="mt-5 space-y-2.5">{children}</ul>
-    </div>
-  );
-}
-
-function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <li>
-      <Link href={href} className="text-[13.5px] text-white/65 transition-colors hover:text-white">
-        {children}
-      </Link>
-    </li>
   );
 }

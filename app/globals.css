@@ -2,69 +2,51 @@
 
 /* ------------------------------------------------------------------
    MB Research Intelligence — design tokens
-   Every colour, font and radius used in the product is declared here.
+   Identity: WHITE + RED + CHARCOAL. Red is an accent, never a fill
+   for large areas. Target balance ≈ 75% white · 15% grey · 10% accent.
 ------------------------------------------------------------------- */
 @theme {
-  /* Brand navy scale */
-  --color-ink-950: #050e1c;
-  --color-ink-900: #071426; /* primary navy */
-  --color-ink-850: #0a1a2f;
-  --color-ink-800: #0c1c31; /* chart surface */
-  --color-ink-750: #10243b; /* secondary navy */
-  --color-ink-700: #15304d;
-  --color-ink-600: #1e3a5c;
-  --color-ink-500: #2a4a70;
+  /* Surfaces */
+  --color-canvas: #ffffff;       /* primary background */
+  --color-paper: #f7f7f7;        /* secondary background */
+  --color-mist: #f3f3f3;         /* light grey surfaces */
+  --color-line: #eaeaea;         /* borders & dividers */
+  --color-line-strong: #d9d9d9;  /* input borders, emphasis rules */
 
-  /* Electric blue */
-  --color-signal-600: #1f6fe0;
-  --color-signal-500: #318bff;
-  --color-signal-400: #5aa2ff;
-  --color-signal-200: #a9d1ff;
-  --color-signal-100: #dcebff;
+  /* Typography */
+  --color-ink: #252525;          /* main text (charcoal) */
+  --color-ink-2: #747474;        /* secondary text */
+  --color-ink-3: #a3a3a3;        /* decorative / disabled only — not for body text */
+  --color-charcoal: #1c1c1c;     /* footer band */
 
-  /* Neutrals for light editorial sections */
-  --color-paper: #ffffff;
-  --color-mist: #f4f7fb;
-  --color-haze: #e7edf5;
-  --color-rule: #d6dfeb;
-  --color-text: #172337;
-  --color-muted: #8995a7;
-  --color-subtle: #5b6779;
+  /* Brand red */
+  --color-brand: #b5122b;
+  --color-brand-dark: #8f1024;
+  --color-brand-tint: #fbf0f2;   /* selected rows, active nav */
 
-  /* Status (reserved — never used as a series colour) */
-  --color-positive: #20b486;
-  --color-negative: #e56c70;
-  --color-caution: #e6a23c;
+  /* Status (reserved — never a chart series) */
+  --color-positive: #24845d;
+  --color-negative: #c44242;
+  --color-caution: #a86b12;
 
-  /* Chart series (validated against #0C1C31 — see lib/charts/theme.ts) */
-  --color-series-demand: #318bff;
-  --color-series-supply: #e2702f;
-  --color-series-price: #199e70;
-  --color-series-4: #c98500;
-  --color-series-5: #d55181;
-  --color-series-6: #9085e9;
+  /* Chart series (validated on #FFFFFF — see lib/charts/theme.ts) */
+  --color-series-1: #b5122b;
+  --color-series-2: #3a76b4;
+  --color-series-3: #b8841a;
+  --color-series-4: #16876a;
+  --color-series-5: #8f55b5;
 
   --font-sans: var(--font-ui), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-serif: var(--font-editorial), ui-serif, Georgia, serif;
-  --font-mono: var(--font-data), ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-serif: var(--font-editorial), ui-serif, Georgia, "Times New Roman", serif;
 
   --radius-xs: 2px;
   --radius-sm: 4px;
   --radius-md: 6px;
 
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px -12px rgb(0 0 0 / 0.08);
+  --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.04), 0 18px 40px -18px rgb(0 0 0 / 0.16);
+
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-
-  --animate-pulse-ring: pulse-ring 2.4s var(--ease-out-expo) infinite;
-  --animate-marquee: marquee 60s linear infinite;
-
-  @keyframes pulse-ring {
-    0% { transform: scale(0.6); opacity: 0.9; }
-    100% { transform: scale(2.6); opacity: 0; }
-  }
-  @keyframes marquee {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
-  }
 }
 
 @layer base {
@@ -75,15 +57,15 @@
     scroll-behavior: smooth;
   }
   body {
-    @apply bg-paper font-sans text-text;
-    font-feature-settings: "ss01", "cv11";
+    @apply bg-canvas font-sans text-ink;
+    font-feature-settings: "cv11", "ss01";
   }
   ::selection {
-    background: var(--color-signal-500);
+    background: var(--color-brand);
     color: #fff;
   }
   :focus-visible {
-    outline: 2px solid var(--color-signal-400);
+    outline: 2px solid var(--color-brand);
     outline-offset: 2px;
   }
   .tabular {
@@ -97,52 +79,26 @@
       transition-duration: 0.01ms !important;
     }
   }
+  @media print {
+    aside, header, .no-print { display: none !important; }
+    main { padding: 0 !important; }
+  }
 }
 
 @layer components {
-  /* Micro-label: the platform's signature index tag, e.g. "01 — DEMAND" */
-  .eyebrow {
-    @apply font-mono text-[11px] font-medium uppercase tracking-[0.18em];
+  /* Small-caps label used for section kickers and field labels */
+  .kicker {
+    @apply text-[11px] font-semibold uppercase tracking-[0.14em];
   }
-  /* Bracketed frame — hairline corner marks used on charts and media */
-  .frame {
-    position: relative;
+  /* Editorial display headline */
+  .display {
+    @apply font-serif font-normal tracking-[-0.015em];
   }
-  .frame::before,
-  .frame::after {
-    content: "";
-    position: absolute;
-    width: 10px;
-    height: 10px;
-    pointer-events: none;
-    border-color: var(--frame-color, var(--color-ink-500));
-  }
-  .frame::before {
-    top: -1px;
-    left: -1px;
-    border-top: 1px solid;
-    border-left: 1px solid;
-  }
-  .frame::after {
-    bottom: -1px;
-    right: -1px;
-    border-bottom: 1px solid;
-    border-right: 1px solid;
-  }
-  .grid-lines {
-    background-image:
-      linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px);
-    background-size: 64px 64px;
-  }
-  .grid-lines-light {
-    background-image:
-      linear-gradient(to right, rgb(23 35 55 / 0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(23 35 55 / 0.05) 1px, transparent 1px);
-    background-size: 64px 64px;
+  .rule {
+    @apply border-t border-line;
   }
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: var(--color-ink-600) transparent;
+    scrollbar-color: var(--color-line-strong) transparent;
   }
 }

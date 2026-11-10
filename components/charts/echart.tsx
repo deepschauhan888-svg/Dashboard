@@ -48,7 +48,7 @@ export function EChart({
         setStatus("ready");
         onReady?.({
           getDataURL: () =>
-            chart.current ? chart.current.getDataURL({ type: "png", pixelRatio: 2, backgroundColor: "#0C1C31" }) : null,
+            chart.current ? chart.current.getDataURL({ type: "png", pixelRatio: 2, backgroundColor: "#FFFFFF" }) : null,
         });
       })
       .catch(() => !disposed && setStatus("error"));
@@ -71,12 +71,12 @@ export function EChart({
       {status === "loading" && (
         <div className="absolute inset-0 flex items-end gap-1.5 px-2 pb-6 pt-10" aria-hidden>
           {Array.from({ length: 14 }).map((_, i) => (
-            <div key={i} className="flex-1 animate-pulse rounded-t-xs bg-white/[0.04]" style={{ height: `${30 + ((i * 37) % 55)}%` }} />
+            <div key={i} className="flex-1 animate-pulse rounded-t-xs bg-mist" style={{ height: `${30 + ((i * 37) % 55)}%` }} />
           ))}
         </div>
       )}
       {status === "error" && (
-        <div className="absolute inset-0 flex items-center justify-center text-[13px] text-muted">Chart engine failed to load.</div>
+        <div className="absolute inset-0 flex items-center justify-center text-[13px] text-ink-2">Chart engine failed to load.</div>
       )}
     </div>
   );

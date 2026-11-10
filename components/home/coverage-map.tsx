@@ -1,11 +1,9 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { MapPin } from "lucide-react";
 import { useMemo, useState } from "react";
 import { coverageConfig, type CoverageCity, type CoverageStatus } from "@/lib/config/coverage";
 import { getMarketingSnapshot } from "@/lib/data/demo/marketing-snapshot";
-import { formatNumber, formatPct, formatPsf, formatRatio } from "@/lib/utils/format";
+import { formatPct, formatPsf, formatRatio } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import { Container, SectionHeading } from "@/components/layout/section";
 import { DemoDataBadge } from "@/components/ui/badge";
@@ -61,20 +59,13 @@ export function CoverageMap() {
   const statuses = [...new Set(markers.map((m) => m.status))] as CoverageStatus[];
 
   return (
-    <section className="relative bg-white py-24 sm:py-32" aria-label="Market coverage">
+    <section className="border-t border-line bg-paper py-24 sm:py-28" aria-label="Market coverage">
       <Container>
-        <SectionHeading
-          index="03"
-          eyebrow="Coverage"
-          title="Market Coverage,"
-          accent="City by City."
-          lede="Explore the markets represented in the platform preview. Select a city to see its demonstration indicators."
-        />
+        <SectionHeading kicker="Coverage" title="Markets across India." lede="Select a city to see its indicators in the demonstration dataset." />
 
-        <div className="mt-14 grid gap-8 lg:grid-cols-12">
-          <div className="relative flex flex-col overflow-hidden rounded-xs bg-ink-900 lg:col-span-7">
-            <div className="grid-lines absolute inset-0" aria-hidden />
-            <div className="relative flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-5 py-3">
+        <div className="mt-12 grid gap-6 lg:grid-cols-12">
+          <div className="flex flex-col rounded-sm border border-line bg-white lg:col-span-7">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-3">
               <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by coverage status">
                 {statuses.map((s) => (
                   <button
@@ -82,24 +73,16 @@ export function CoverageMap() {
                     type="button"
                     aria-pressed={visible[s]}
                     onClick={() => setVisible((v) => ({ ...v, [s]: !v[s] }))}
-                    className={cn(
-                      "inline-flex items-center gap-2 rounded-xs px-2.5 py-1 text-[12px] ring-1 ring-inset transition-colors",
-                      visible[s] ? "bg-white/[0.06] text-white ring-white/20" : "text-white/40 ring-white/10",
-                    )}
+                    className={cn("inline-flex items-center gap-2 rounded-xs px-2.5 py-1 text-[12.5px] ring-1 ring-inset transition-colors", visible[s] ? "text-ink ring-line-strong" : "text-ink-3 ring-line")}
                   >
                     <StatusDot status={s} /> {STATUS_LABEL[s]}
                   </button>
                 ))}
               </div>
-              <span className="text-[11px] text-white/40">{coverageConfig.outlineNote}</span>
+              <span className="text-[11.5px] text-ink-2">{coverageConfig.outlineNote}</span>
             </div>
-            <svg viewBox={`-20 -10 ${MAP_WIDTH + 40} ${MAP_HEIGHT + 20}`} className="relative m-auto block h-auto w-full max-w-[560px] px-4 py-6" role="group" aria-label="Schematic map of India with market markers">
-              <defs>
-                <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
-                  <circle cx="1.2" cy="1.2" r="1.2" fill="rgba(169,209,255,0.16)" />
-                </pattern>
-              </defs>
-              <path d={path} fill="url(#dots)" stroke="rgba(169,209,255,0.35)" strokeWidth="1.2" strokeLinejoin="round" />
+            <svg viewBox={`-20 -10 ${MAP_WIDTH + 40} ${MAP_HEIGHT + 20}`} className="m-auto block h-auto w-full max-w-[600px] px-4 py-6" role="group" aria-label="Schematic map of India with market markers">
+              <path d={path} fill="#F3F3F3" stroke="#BDBDBD" strokeWidth="1.2" strokeLinejoin="round" />
               {shown.map((m) => {
                 const isActive = m.id === active.id;
                 const side = LABEL_SIDE[m.id] ?? "right";
@@ -117,28 +100,21 @@ export function CoverageMap() {
                         setSelected(m.id);
                       }
                     }}
-                    className="cursor-pointer outline-none [&:focus-visible_circle.ring]:stroke-white"
+                    className="cursor-pointer outline-none [&:focus-visible_circle.dot]:stroke-ink"
                   >
-                    <circle cx={m.x} cy={m.y} r="22" fill="transparent" />
-                    {m.status !== "planned" && (
-                      <circle cx={m.x} cy={m.y} r="6" fill="none" stroke="#318BFF" strokeOpacity="0.6" className="origin-center animate-pulse-ring" style={{ transformBox: "fill-box" }} />
-                    )}
+                    <circle cx={m.x} cy={m.y} r="20" fill="transparent" />
+                    {isActive && <circle cx={m.x} cy={m.y} r="13" fill="#B5122B" fillOpacity="0.12" />}
                     <circle
-                      className="ring"
+                      className="dot"
                       cx={m.x}
                       cy={m.y}
-                      r={isActive ? 7 : 5}
-                      fill={m.status === "planned" ? "transparent" : isActive ? "#318BFF" : "#A9D1FF"}
-                      stroke={m.status === "planned" ? "#A9D1FF" : "#071426"}
-                      strokeWidth={m.status === "planned" ? 1.5 : 2}
+                      r={isActive ? 6.5 : 5}
+                      fill={m.status === "planned" ? "#FFFFFF" : isActive ? "#B5122B" : "#252525"}
+                      stroke={m.status === "planned" ? "#747474" : "#FFFFFF"}
+                      strokeWidth={1.5}
                       strokeDasharray={m.status === "planned" ? "2 2" : undefined}
                     />
-                    <text
-                      x={side === "right" ? m.x + 12 : m.x - 12}
-                      y={m.y + 4}
-                      textAnchor={side === "right" ? "start" : "end"}
-                      className={cn("select-none font-sans text-[13px]", isActive ? "fill-white font-semibold" : "fill-white/60")}
-                    >
+                    <text x={side === "right" ? m.x + 11 : m.x - 11} y={m.y + 4} textAnchor={side === "right" ? "start" : "end"} className={cn("select-none font-sans text-[13px]", isActive ? "fill-brand font-semibold" : "fill-[#5E5E5E]")}>
                       {m.label}
                     </text>
                   </g>
@@ -147,46 +123,38 @@ export function CoverageMap() {
             </svg>
           </div>
 
-          <div className="flex flex-col lg:col-span-5">
-            <AnimatePresence mode="wait">
-              <motion.div key={active.id} initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.3 }} className="rounded-xs border border-rule p-6" aria-live="polite">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="eyebrow text-subtle">{active.region}</p>
-                    <h3 className="mt-2 text-[28px] font-semibold tracking-tight text-ink-900">{active.label}</h3>
-                  </div>
-                  <span className="inline-flex items-center gap-2 rounded-xs bg-mist px-2 py-1 text-[12px] text-subtle">
-                    <StatusDot status={active.status} /> {STATUS_LABEL[active.status]}
-                  </span>
+          <div className="flex flex-col gap-4 lg:col-span-5">
+            <div className="rounded-sm border border-line bg-white p-6" aria-live="polite">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[12px] text-ink-2">{active.region}</p>
+                  <h3 className="display mt-1 text-[30px]">{active.label}</h3>
                 </div>
-                <div className="mt-6 space-y-5">
-                  {active.cities.map((c) => {
-                    const m = metricsFor(c.demoCityId);
-                    return (
-                      <div key={c.id} className="border-t border-rule pt-5">
-                        {active.cities.length > 1 && <p className="mb-3 flex items-center gap-2 text-[14px] font-medium text-ink-900"><MapPin className="h-3.5 w-3.5 text-signal-500" aria-hidden /> {c.name}</p>}
-                        {m ? (
-                          <dl className="grid grid-cols-2 gap-x-6 gap-y-4">
-                            <Metric label="Demand units" value={formatNumber(m.demand)} />
-                            <Metric label="Avg price" value={`${formatPsf(m.avgPrice)}/sq ft`} />
-                            <Metric label="Price YoY" value={formatPct(m.priceYoY)} />
-                            <Metric label="Demand / supply" value={formatRatio(m.dsRatio)} />
-                          </dl>
-                        ) : (
-                          <p className="text-[14px] text-subtle">Planned market — not included in the demonstration dataset.</p>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="mt-6 flex items-center justify-between gap-3 border-t border-rule pt-4">
-                  <span className="text-[12px] text-muted">{snap.yearPeriodLabel}</span>
-                  <DemoDataBadge compact />
-                </div>
-              </motion.div>
-            </AnimatePresence>
+                <DemoDataBadge compact />
+              </div>
+              <div className="mt-4 space-y-4">
+                {active.cities.map((c) => {
+                  const m = metricsFor(c.demoCityId);
+                  return (
+                    <div key={c.id} className="border-t border-line pt-4">
+                      {active.cities.length > 1 && <p className="mb-2 text-[14px] font-medium">{c.name}</p>}
+                      {m ? (
+                        <dl className="grid grid-cols-3 gap-4">
+                          <Metric label="Avg price / sq ft" value={formatPsf(m.avgPrice)} />
+                          <Metric label="Price YoY" value={formatPct(m.priceYoY)} />
+                          <Metric label="Demand ÷ supply" value={formatRatio(m.dsRatio)} />
+                        </dl>
+                      ) : (
+                        <p className="text-[14px] text-ink-2">Planned market — not part of the demonstration dataset.</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="mt-4 text-[12px] text-ink-2">{snap.yearPeriodLabel} · demonstration figures</p>
+            </div>
 
-            <ul className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-xs bg-rule ring-1 ring-rule sm:grid-cols-3" aria-label="Markets">
+            <ul className="grid grid-cols-2 gap-px overflow-hidden rounded-sm border border-line bg-line sm:grid-cols-3" aria-label="Markets">
               {markers.map((m) => (
                 <li key={m.id} className="bg-white">
                   <button
@@ -196,14 +164,14 @@ export function CoverageMap() {
                       setVisible((v) => ({ ...v, [m.status]: true }));
                     }}
                     aria-pressed={m.id === active.id}
-                    className={cn("flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] transition-colors", m.id === active.id ? "bg-ink-900 text-white" : "text-text hover:bg-mist")}
+                    className={cn("flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] transition-colors", m.id === active.id ? "bg-brand-tint font-medium text-brand-dark" : "text-ink hover:bg-paper")}
                   >
                     <StatusDot status={m.status} /> {m.label}
                   </button>
                 </li>
               ))}
             </ul>
-            <p className="mt-4 text-[12.5px] leading-relaxed text-muted">{coverageConfig.disclaimer}</p>
+            <p className="text-[12.5px] leading-relaxed text-ink-2">{coverageConfig.disclaimer}</p>
           </div>
         </div>
       </Container>
@@ -214,8 +182,8 @@ export function CoverageMap() {
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-[12px] text-muted">{label}</dt>
-      <dd className="mt-1 font-mono text-[17px] text-ink-900">{value}</dd>
+      <dt className="text-[12px] text-ink-2">{label}</dt>
+      <dd className="mt-1 text-[18px] font-medium tabular text-ink">{value}</dd>
     </div>
   );
 }
@@ -226,8 +194,8 @@ function StatusDot({ status }: { status: CoverageStatus }) {
       className={cn(
         "inline-block h-2 w-2 shrink-0 rounded-full",
         status === "live" && "bg-positive",
-        status === "illustrative" && "bg-signal-500",
-        status === "planned" && "border border-dashed border-signal-400 bg-transparent",
+        status === "illustrative" && "bg-ink",
+        status === "planned" && "border border-dashed border-ink-2 bg-transparent",
       )}
       aria-hidden
     />

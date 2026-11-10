@@ -3,7 +3,7 @@
 import { DataValidation } from "./data-validation";
 import { DatasetUpload } from "./dataset-upload";
 import { CityManagement, ClientManagement, MicromarketManagement } from "./management";
-import { AccessPermissions, PlatformSettings, SubscriptionManagement } from "./platform-config";
+import { AccessPermissions, SubscriptionManagement } from "./platform-config";
 import { UploadHistory } from "./upload-history";
 import type { AdminSectionSlug } from "@/lib/config/admin-sections";
 
@@ -25,7 +25,5 @@ export function AdminSection({ slug }: { slug: AdminSectionSlug }) {
       return <SubscriptionManagement />;
     case "permissions":
       return <AccessPermissions />;
-    case "settings":
-      return <PlatformSettings />;
   }
 }

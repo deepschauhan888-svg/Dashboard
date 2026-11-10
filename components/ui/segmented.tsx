@@ -14,7 +14,6 @@ export function Segmented<T extends string>({
   onChange,
   options,
   ariaLabel,
-  skin = "dark",
   size = "sm",
   className,
 }: {
@@ -22,7 +21,6 @@ export function Segmented<T extends string>({
   onChange: (v: T) => void;
   options: SegmentOption<T>[];
   ariaLabel: string;
-  skin?: "dark" | "light";
   size?: "sm" | "md";
   className?: string;
 }) {
@@ -38,15 +36,7 @@ export function Segmented<T extends string>({
   }
 
   return (
-    <div
-      role="radiogroup"
-      aria-label={ariaLabel}
-      className={cn(
-        "inline-flex rounded-sm p-0.5",
-        skin === "dark" ? "bg-ink-850 ring-1 ring-inset ring-ink-600" : "bg-mist ring-1 ring-inset ring-rule",
-        className,
-      )}
-    >
+    <div role="radiogroup" aria-label={ariaLabel} className={cn("inline-flex flex-wrap rounded-sm bg-mist p-0.5", className)}>
       {options.map((o, i) => {
         const active = o.value === value;
         return (
@@ -63,14 +53,8 @@ export function Segmented<T extends string>({
             onClick={() => onChange(o.value)}
             className={cn(
               "whitespace-nowrap rounded-xs font-medium transition-colors",
-              size === "sm" ? "h-7 px-2.5 text-[12px]" : "h-9 px-3.5 text-[13px]",
-              skin === "dark"
-                ? active
-                  ? "bg-ink-600 text-white shadow-sm"
-                  : "text-muted hover:text-white"
-                : active
-                  ? "bg-white text-text shadow-sm ring-1 ring-rule"
-                  : "text-subtle hover:text-text",
+              size === "sm" ? "h-7 px-2.5 text-[12px]" : "h-8 px-3.5 text-[13px]",
+              active ? "bg-white text-ink shadow-[0_1px_2px_rgba(0,0,0,0.08)]" : "text-ink-2 hover:text-ink",
             )}
           >
             {o.label}

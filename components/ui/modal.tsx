@@ -61,34 +61,23 @@ export function Modal({
   return (
     <AnimatePresence>
       {open && (
-        <motion.div className="fixed inset-0 z-[80] flex items-center justify-center p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-          <div className="absolute inset-0 bg-ink-950/75 backdrop-blur-[2px]" onClick={onClose} aria-hidden />
-          <motion.div
-            ref={panelRef}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="modal-title"
-            tabIndex={-1}
-            initial={{ y: 12, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 8, opacity: 0 }}
-            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className={cn("relative w-full rounded-md bg-ink-800 text-white shadow-2xl ring-1 ring-ink-600 outline-none", width)}
-          >
-            <div className="flex items-start justify-between gap-4 border-b border-ink-600/70 px-6 py-5">
+        <motion.div className="fixed inset-0 z-[80] flex items-center justify-center p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+          <div className="absolute inset-0 bg-ink/30" onClick={onClose} aria-hidden />
+          <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="modal-title" tabIndex={-1} className={cn("relative w-full rounded-md bg-white text-ink shadow-[var(--shadow-lift)] outline-none", width)}>
+            <div className="flex items-start justify-between gap-4 border-b border-line px-6 py-5">
               <div>
                 <h2 id="modal-title" className="text-base font-semibold">
                   {title}
                 </h2>
-                {description && <p className="mt-1 text-[13px] text-muted">{description}</p>}
+                {description && <p className="mt-1 text-[13px] text-ink-2">{description}</p>}
               </div>
-              <button data-close type="button" onClick={onClose} className="rounded-xs p-1 text-muted hover:bg-white/5 hover:text-white" aria-label="Close dialog">
+              <button data-close type="button" onClick={onClose} className="rounded-xs p-1 text-ink-2 hover:bg-mist hover:text-ink" aria-label="Close dialog">
                 <X className="h-4 w-4" />
               </button>
             </div>
             <div className="max-h-[70vh] overflow-y-auto px-6 py-5 scrollbar-thin">{children}</div>
-            {footer && <div className="flex justify-end gap-2 border-t border-ink-600/70 px-6 py-4">{footer}</div>}
-          </motion.div>
+            {footer && <div className="flex justify-end gap-2 border-t border-line px-6 py-4">{footer}</div>}
+          </div>
         </motion.div>
       )}
     </AnimatePresence>

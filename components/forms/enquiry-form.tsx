@@ -10,11 +10,10 @@ import { Field, Input, Select, Textarea } from "@/components/ui/form-controls";
 import { Button } from "@/components/ui/button";
 
 export const ENQUIRY_TYPES = [
-  { value: "subscription", label: "Platform subscription" },
-  { value: "demonstration", label: "Product demonstration" },
-  { value: "locality", label: "Locality-specific research" },
-  { value: "custom", label: "Custom research requirements" },
-  { value: "collaboration", label: "Institutional collaboration" },
+  { value: "demonstration", label: "Platform demonstration" },
+  { value: "subscription", label: "Subscription enquiry" },
+  { value: "custom", label: "Custom micromarket research" },
+  { value: "institutional", label: "Institutional enquiry" },
   { value: "other", label: "Other" },
 ] as const;
 
@@ -115,32 +114,32 @@ export function EnquiryForm() {
 
   if (status === "done") {
     return (
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="rounded-xs border border-rule bg-white p-8 sm:p-10" role="status" aria-live="polite">
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="rounded-sm border border-line bg-white p-8 sm:p-10" role="status" aria-live="polite">
         <CircleCheck className="h-8 w-8 text-positive" aria-hidden />
-        <h2 className="mt-5 text-[26px] font-semibold tracking-tight text-ink-900">Enquiry validated — demonstration only</h2>
-        <p className="mt-3 text-[15px] leading-relaxed text-subtle">
-          Thank you, {form.name.split(" ")[0]}. Your enquiry passed validation. In this showcase build it has <strong className="text-ink-900">not</strong> been emailed or stored in any CRM — submission will be connected to MB Research&apos;s enquiry workflow in the backend phase.
+        <h2 className="display mt-5 text-[30px] text-ink">Enquiry validated — demonstration only</h2>
+        <p className="mt-3 text-[15px] leading-relaxed text-ink-2">
+          Thank you, {form.name.split(" ")[0]}. Your enquiry passed validation. In this showcase build it has <strong className="text-ink">not</strong> been emailed or stored in any CRM — submission will be connected to MB Research&apos;s enquiry workflow in the backend phase.
         </p>
-        <dl className="mt-8 grid gap-4 border-t border-rule pt-6 text-[14px] sm:grid-cols-2">
+        <dl className="mt-8 grid gap-4 border-t border-line pt-6 text-[14px] sm:grid-cols-2">
           <div>
-            <dt className="text-muted">Demo reference</dt>
-            <dd className="mt-1 font-mono text-ink-900">{reference}</dd>
+            <dt className="text-ink-2">Demo reference</dt>
+            <dd className="mt-1 font-medium text-ink">{reference}</dd>
           </div>
           <div>
-            <dt className="text-muted">Enquiry type</dt>
-            <dd className="mt-1 text-ink-900">{ENQUIRY_TYPES.find((t) => t.value === form.type)?.label}</dd>
+            <dt className="text-ink-2">Enquiry type</dt>
+            <dd className="mt-1 text-ink">{ENQUIRY_TYPES.find((t) => t.value === form.type)?.label}</dd>
           </div>
           <div>
-            <dt className="text-muted">Organisation</dt>
-            <dd className="mt-1 text-ink-900">{form.organisation}</dd>
+            <dt className="text-ink-2">Organisation</dt>
+            <dd className="mt-1 text-ink">{form.organisation}</dd>
           </div>
           <div>
-            <dt className="text-muted">Market of interest</dt>
-            <dd className="mt-1 text-ink-900">{[form.micromarket, form.city].filter(Boolean).join(", ")}</dd>
+            <dt className="text-ink-2">Market of interest</dt>
+            <dd className="mt-1 text-ink">{[form.micromarket, form.city].filter(Boolean).join(", ")}</dd>
           </div>
         </dl>
         <Button
-          variant="outline"
+          variant="secondary"
           className="mt-8"
           onClick={() => {
             setForm({ ...empty, message: "" });
@@ -162,7 +161,7 @@ export function EnquiryForm() {
   ];
 
   return (
-    <form onSubmit={onSubmit} noValidate className="rounded-xs border border-rule bg-white p-6 sm:p-10" aria-describedby="form-note">
+    <form onSubmit={onSubmit} noValidate className="rounded-sm border border-line bg-white p-6 sm:p-10" aria-describedby="form-note">
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="Full name" htmlFor="enq-name" required error={err("name")}>
           <Input id="enq-name" autoComplete="name" value={form.name} onChange={(e) => set("name", e.target.value)} onBlur={() => blur("name")} invalid={!!err("name")} aria-describedby={err("name") ? "enq-name-error" : undefined} />
@@ -182,9 +181,7 @@ export function EnquiryForm() {
         <Field label="Enquiry type" htmlFor="enq-type" required error={err("type")}>
           <Select
             id="enq-type"
-            skin="light"
-            size="md"
-            className="[&_select]:h-11"
+            size="lg"
             value={form.type}
             invalid={!!err("type")}
             onChange={(e) => set("type", e.target.value as EnquiryType)}
@@ -193,7 +190,7 @@ export function EnquiryForm() {
           />
         </Field>
         <Field label="City" htmlFor="enq-city" required error={err("city")}>
-          <Select id="enq-city" skin="light" className="[&_select]:h-11" value={form.city} invalid={!!err("city")} onChange={(e) => set("city", e.target.value)} onBlur={() => blur("city")} options={cityOptions} />
+          <Select id="enq-city" size="lg" value={form.city} invalid={!!err("city")} onChange={(e) => set("city", e.target.value)} onBlur={() => blur("city")} options={cityOptions} />
         </Field>
         <Field label="Area / micromarket of interest" htmlFor="enq-micromarket" hint={micromarketSuggestions.length ? "Start typing for suggestions" : "Optional"}>
           <Input id="enq-micromarket" list="mm-suggestions" value={form.micromarket} onChange={(e) => set("micromarket", e.target.value)} />
@@ -207,20 +204,20 @@ export function EnquiryForm() {
           <Textarea id="enq-message" value={form.message} onChange={(e) => set("message", e.target.value)} onBlur={() => blur("message")} invalid={!!err("message")} placeholder="Tell us about the markets, questions or decisions you are working on." />
         </Field>
         <div className="sm:col-span-2">
-          <label className="flex items-start gap-3 text-[13.5px] text-subtle">
-            <input id="enq-consent" type="checkbox" className="mt-0.5 h-4 w-4 accent-signal-500" checked={form.consent} onChange={(e) => set("consent", e.target.checked)} onBlur={() => blur("consent")} />
+          <label className="flex items-start gap-3 text-[13.5px] text-ink-2">
+            <input id="enq-consent" type="checkbox" className="mt-0.5 h-4 w-4 accent-brand" checked={form.consent} onChange={(e) => set("consent", e.target.checked)} onBlur={() => blur("consent")} />
             I agree that MB Research may contact me about this enquiry.
           </label>
           {err("consent") && <p className="mt-1.5 text-[12px] text-negative" role="alert">{err("consent")}</p>}
         </div>
       </div>
 
-      <div className="mt-8 flex flex-col-reverse items-start justify-between gap-5 border-t border-rule pt-6 sm:flex-row sm:items-center">
-        <p id="form-note" className="flex max-w-md items-start gap-2 text-[12.5px] text-muted">
+      <div className="mt-8 flex flex-col-reverse items-start justify-between gap-5 border-t border-line pt-6 sm:flex-row sm:items-center">
+        <p id="form-note" className="flex max-w-md items-start gap-2 text-[12.5px] text-ink-2">
           <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
           Showcase build: submissions are validated in the browser only and are not transmitted or stored.
         </p>
-        <Button type="submit" size="lg" disabled={status === "submitting"}>
+        <Button type="submit" size="lg" variant="primary" disabled={status === "submitting"}>
           <AnimatePresence mode="wait" initial={false}>
             {status === "submitting" ? (
               <motion.span key="s" className="inline-flex items-center gap-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>

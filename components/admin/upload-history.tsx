@@ -63,7 +63,7 @@ export function UploadHistory() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px]">
             <thead>
-              <tr className="border-b border-ink-600/60">
+              <tr className="border-b border-line">
                 {["Version", "File", "Period", "Scope", "Rows", "Errors / warnings", "Status", "Uploaded"].map((h) => (
                   <th key={h} className={th}>
                     {h}
@@ -73,27 +73,27 @@ export function UploadHistory() {
             </thead>
             <tbody>
               {rows.map((u) => (
-                <tr key={u.id} className="border-b border-ink-700/60">
-                  <td className={`${td} font-mono`}>v{u.version}</td>
-                  <td className={`${td} text-white/85`}>{u.fileName}</td>
+                <tr key={u.id} className="border-b border-line">
+                  <td className={`${td} tabular`}>v{u.version}</td>
+                  <td className={`${td} text-ink`}>{u.fileName}</td>
                   <td className={td}>{u.period}</td>
                   <td className={td}>{u.cityId === "all" ? "All cities" : u.cityId}</td>
-                  <td className={`${td} font-mono`}>{u.rows.toLocaleString("en-IN")}</td>
-                  <td className={`${td} font-mono`}>
-                    <span className={u.errors ? "text-negative" : "text-white/60"}>{u.errors}</span> / <span className={u.warnings ? "text-caution" : "text-white/60"}>{u.warnings}</span>
+                  <td className={`${td} tabular`}>{u.rows.toLocaleString("en-IN")}</td>
+                  <td className={`${td} tabular`}>
+                    <span className={u.errors ? "text-negative" : "text-ink-2"}>{u.errors}</span> / <span className={u.warnings ? "text-caution" : "text-ink-2"}>{u.warnings}</span>
                   </td>
                   <td className={td}>
                     <StatusPill tone={uploadTone(u.status)}>{u.status.replace("_", " ")}</StatusPill>
                   </td>
-                  <td className={`${td} text-white/60`}>
+                  <td className={`${td} text-ink-2`}>
                     {new Date(u.uploadedAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
-                    <span className="block text-[11.5px] text-muted">{u.uploadedBy}</span>
+                    <span className="block text-[11.5px] text-ink-2">{u.uploadedBy}</span>
                   </td>
                 </tr>
               ))}
               {!rows.length && (
                 <tr>
-                  <td colSpan={8} className="py-10 text-center text-[13px] text-muted">
+                  <td colSpan={8} className="py-10 text-center text-[13px] text-ink-2">
                     No uploads with this status.
                   </td>
                 </tr>

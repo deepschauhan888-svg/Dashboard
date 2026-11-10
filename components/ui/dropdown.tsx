@@ -1,6 +1,5 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils/cn";
 
@@ -51,42 +50,19 @@ export function Dropdown({
 
   return (
     <div className="relative" ref={ref}>
-      <button type="button" aria-haspopup="menu" aria-expanded={open} aria-controls={menuId} aria-label={label} onClick={() => setOpen((v) => !v)} className="rounded-xs outline-none focus-visible:ring-2 focus-visible:ring-signal-400">
+      <button type="button" aria-haspopup="menu" aria-expanded={open} aria-controls={menuId} aria-label={label} onClick={() => setOpen((v) => !v)} className="rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-brand">
         {trigger({ open })}
       </button>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            id={menuId}
-            role="menu"
-            aria-label={label}
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.15 }}
-            className={cn("absolute z-50 mt-2 overflow-hidden rounded-sm bg-ink-800 py-1.5 shadow-2xl ring-1 ring-ink-600", align === "right" ? "right-0" : "left-0", width)}
-          >
-            {children(() => setOpen(false))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {open && (
+        <div id={menuId} role="menu" aria-label={label} className={cn("absolute z-50 mt-2 overflow-hidden rounded-sm border border-line bg-white py-1.5 shadow-[var(--shadow-lift)]", align === "right" ? "right-0" : "left-0", width)}>
+          {children(() => setOpen(false))}
+        </div>
+      )}
     </div>
   );
 }
 
-export function MenuItem({
-  children,
-  onSelect,
-  disabled,
-  hint,
-  icon,
-}: {
-  children: ReactNode;
-  onSelect?: () => void;
-  disabled?: boolean;
-  hint?: string;
-  icon?: ReactNode;
-}) {
+export function MenuItem({ children, onSelect, disabled, hint, icon }: { children: ReactNode; onSelect?: () => void; disabled?: boolean; hint?: string; icon?: ReactNode }) {
   return (
     <button
       type="button"
@@ -94,24 +70,21 @@ export function MenuItem({
       aria-disabled={disabled || undefined}
       tabIndex={-1}
       onClick={() => !disabled && onSelect?.()}
-      className={cn(
-        "flex w-full items-start gap-3 px-3.5 py-2 text-left text-[13px] outline-none",
-        disabled ? "cursor-not-allowed text-white/35" : "text-white/85 hover:bg-white/[0.05] focus:bg-white/[0.07]",
-      )}
+      className={cn("flex w-full items-start gap-3 px-3.5 py-2 text-left text-[13px] outline-none", disabled ? "cursor-not-allowed text-ink-3" : "text-ink hover:bg-paper focus:bg-paper")}
     >
-      {icon && <span className="mt-0.5 text-muted">{icon}</span>}
+      {icon && <span className="mt-0.5 text-ink-2">{icon}</span>}
       <span className="flex-1">
         {children}
-        {hint && <span className="mt-0.5 block text-[11.5px] text-muted">{hint}</span>}
+        {hint && <span className="mt-0.5 block text-[11.5px] text-ink-2">{hint}</span>}
       </span>
     </button>
   );
 }
 
 export function MenuSeparator() {
-  return <div className="my-1.5 h-px bg-ink-600/70" role="separator" />;
+  return <div className="my-1.5 h-px bg-line" role="separator" />;
 }
 
 export function MenuLabel({ children }: { children: ReactNode }) {
-  return <div className="px-3.5 pb-1 pt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-muted">{children}</div>;
+  return <div className="px-3.5 pb-1 pt-2 text-[10.5px] font-semibold uppercase tracking-[0.1em] text-ink-2">{children}</div>;
 }

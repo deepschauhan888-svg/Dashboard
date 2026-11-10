@@ -37,15 +37,15 @@ export function PerformanceTable({ rows, highlightId, onSelect }: { rows: Breakd
     <div className="overflow-x-auto scrollbar-thin">
       <table className="w-full min-w-[820px] border-collapse text-[13px]">
         <thead>
-          <tr className="border-b border-ink-600">
+          <tr className="border-b border-line-strong">
             {COLS.map((c, i) => {
               const active = sort.key === c.key;
               return (
-                <th key={c.key} scope="col" aria-sort={active ? (sort.dir === 1 ? "ascending" : "descending") : "none"} className={cn("px-3 py-2.5 font-medium text-muted", i === 0 ? "text-left" : "text-right")}>
+                <th key={c.key} scope="col" aria-sort={active ? (sort.dir === 1 ? "ascending" : "descending") : "none"} className={cn("px-3 py-2.5 font-medium text-ink-2", i === 0 ? "text-left" : "text-right")}>
                   <button
                     type="button"
                     onClick={() => setSort((s) => ({ key: c.key, dir: s.key === c.key ? (s.dir === 1 ? -1 : 1) : c.key === "label" ? 1 : -1 }))}
-                    className={cn("inline-flex items-center gap-1 hover:text-white", active && "text-white")}
+                    className={cn("inline-flex items-center gap-1 hover:text-ink", active && "text-ink")}
                   >
                     {c.label}
                     {active ? sort.dir === 1 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" /> : <ArrowUpDown className="h-3 w-3 opacity-40" />}
@@ -59,12 +59,12 @@ export function PerformanceTable({ rows, highlightId, onSelect }: { rows: Breakd
           {sorted.map((r) => (
             <tr
               key={r.id}
-              className={cn("border-b border-ink-700/60 transition-colors", r.id === highlightId ? "bg-signal-500/[0.08]" : "hover:bg-white/[0.02]", onSelect && "cursor-pointer")}
+              className={cn("border-b border-line transition-colors", r.id === highlightId ? "bg-brand-tint" : "hover:bg-paper", onSelect && "cursor-pointer")}
               onClick={() => onSelect?.(r.id)}
             >
-              <th scope="row" className="px-3 py-2.5 text-left font-medium text-white/90">
+              <th scope="row" className="px-3 py-2.5 text-left font-medium text-ink">
                 {onSelect ? (
-                  <button type="button" className="hover:text-signal-200" onClick={(e) => { e.stopPropagation(); onSelect(r.id); }}>
+                  <button type="button" className="hover:text-brand" onClick={(e) => { e.stopPropagation(); onSelect(r.id); }}>
                     {r.label}
                   </button>
                 ) : (
@@ -73,25 +73,25 @@ export function PerformanceTable({ rows, highlightId, onSelect }: { rows: Breakd
               </th>
               <td className="px-3 py-2.5 text-right">
                 <div className="flex items-center justify-end gap-2">
-                  <div className="hidden h-1.5 w-20 overflow-hidden rounded-full bg-ink-700 sm:block" aria-hidden>
-                    <div className="h-full rounded-full bg-series-demand" style={{ width: `${(r.demand / maxDemand) * 100}%` }} />
+                  <div className="hidden h-1.5 w-20 overflow-hidden rounded-full bg-mist sm:block" aria-hidden>
+                    <div className="h-full rounded-full bg-ink/70" style={{ width: `${(r.demand / maxDemand) * 100}%` }} />
                   </div>
-                  <span className="font-mono tabular text-white/85">{formatNumber(r.demand)}</span>
+                  <span className="tabular text-ink">{formatNumber(r.demand)}</span>
                 </div>
               </td>
-              <td className={cn("px-3 py-2.5 text-right font-mono tabular", (r.demandChange ?? 0) >= 0 ? "text-positive" : "text-negative")}>{formatPct(r.demandChange)}</td>
-              <td className="px-3 py-2.5 text-right font-mono tabular text-white/85">{formatNumber(r.supply)}</td>
+              <td className={cn("px-3 py-2.5 text-right tabular", (r.demandChange ?? 0) >= 0 ? "text-positive" : "text-negative")}>{formatPct(r.demandChange)}</td>
+              <td className="px-3 py-2.5 text-right tabular text-ink">{formatNumber(r.supply)}</td>
               <td className="px-3 py-2.5 text-right">
                 <div className="flex items-center justify-end gap-2">
-                  <div className="hidden h-1.5 w-14 overflow-hidden rounded-full bg-ink-700 sm:block" aria-hidden>
-                    <div className="h-full rounded-full bg-signal-200/70" style={{ width: `${((r.dsRatio ?? 0) / maxDs) * 100}%` }} />
+                  <div className="hidden h-1.5 w-14 overflow-hidden rounded-full bg-mist sm:block" aria-hidden>
+                    <div className="h-full rounded-full bg-ink-3" style={{ width: `${((r.dsRatio ?? 0) / maxDs) * 100}%` }} />
                   </div>
-                  <span className="font-mono tabular text-white/85">{formatRatio(r.dsRatio)}</span>
+                  <span className="tabular text-ink">{formatRatio(r.dsRatio)}</span>
                 </div>
               </td>
-              <td className="px-3 py-2.5 text-right font-mono tabular text-white/85">{formatPsf(r.avgPrice)}</td>
-              <td className={cn("px-3 py-2.5 text-right font-mono tabular", (r.priceYoY ?? 0) >= 0 ? "text-positive" : "text-negative")}>{formatPct(r.priceYoY)}</td>
-              <td className="px-3 py-2.5 text-right font-mono tabular text-white/85">{formatNumber(r.inventory)}</td>
+              <td className="px-3 py-2.5 text-right tabular text-ink">{formatPsf(r.avgPrice)}</td>
+              <td className={cn("px-3 py-2.5 text-right tabular", (r.priceYoY ?? 0) >= 0 ? "text-positive" : "text-negative")}>{formatPct(r.priceYoY)}</td>
+              <td className="px-3 py-2.5 text-right tabular text-ink">{formatNumber(r.inventory)}</td>
             </tr>
           ))}
         </tbody>

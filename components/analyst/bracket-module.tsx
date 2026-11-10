@@ -14,15 +14,15 @@ import { ChartPanel, type TableData } from "@/components/charts/chart-panel";
 import { Segmented } from "@/components/ui/segmented";
 import { Button } from "@/components/ui/button";
 import { WorkspacePageHeader } from "@/components/dashboard/page-header";
-import { useRegisterExport, useWorkspace } from "@/components/dashboard/workspace-context";
+import { useRegisterExport, useViewFilters, useWorkspace } from "@/components/dashboard/workspace-context";
 
 type Dim = "ticket" | "size";
 
 const COPY = {
   ticket: {
-    code: "ANALYST · E",
+    code: "Analyst · Ticket size",
     letter: "E",
-    title: "Ticket Size Intelligence",
+    title: "Ticket Size Analysis",
     description: "Demand share, supply share and market imbalance across budget brackets. Choose a preset or define your own brackets.",
     unitHint: "Breakpoints in ₹ lakh, comma-separated (e.g. 40, 80, 150, 300)",
     multiplier: 100_000,
@@ -30,9 +30,9 @@ const COPY = {
     noun: "budget bracket",
   },
   size: {
-    code: "ANALYST · F",
+    code: "Analyst · Property size",
     letter: "F",
-    title: "Size Intelligence",
+    title: "Property Size Analysis",
     description: "Demand and supply across property area ranges (sq ft, super built-up). Choose a preset or define your own ranges.",
     unitHint: "Breakpoints in sq ft, comma-separated (e.g. 650, 1100, 1600, 2400)",
     multiplier: 1,
@@ -42,7 +42,8 @@ const COPY = {
 } as const;
 
 export function BracketModule({ dim }: { dim: Dim }) {
-  const { filters, catalog } = useWorkspace();
+  const { catalog } = useWorkspace();
+  const { filters, key } = useViewFilters(dim === "ticket" ? "ticket-size" : "property-size");
   const svc = getMarketDataService();
   const copy = COPY[dim];
   const presets = dim === "ticket" ? catalog?.ticketPresets ?? [] : catalog?.sizePresets ?? [];
@@ -59,7 +60,7 @@ export function BracketModule({ dim }: { dim: Dim }) {
     const opts = { brackets };
     const [rows, shares, kpis] = await Promise.all([svc.getBreakdown(filters, dim, opts), svc.getShareTrend(filters, dim, 8, opts), svc.getKpis(filters)]);
     return { rows, shares, kpis };
-  }, [filters.cityId, filters.micromarketId, filters.year, filters.quarter, filters.propertyType, bracketKey]);
+  }, [key, bracketKey]);
 
   const empty = !!data && data.kpis.current.recordCount === 0;
   const cats = useMemo(() => (data ? data.rows.map((r) => ({ id: r.id, label: r.label })) : []), [data]);
@@ -102,15 +103,14 @@ export function BracketModule({ dim }: { dim: Dim }) {
 
   const widest = data ? [...data.rows].sort((a, b) => b.gapPp - a.gapPp)[0] : null;
   const over = data ? [...data.rows].sort((a, b) => a.gapPp - b.gapPp)[0] : null;
-  const L = copy.letter;
 
   return (
     <div>
-      <WorkspacePageHeader code={copy.code} title={copy.title} description={copy.description} />
+      <WorkspacePageHeader kicker={copy.code} title={copy.title} description={copy.description} />
 
-      <section className="mb-4 flex flex-wrap items-end gap-4 rounded-xs bg-ink-800 p-4 ring-1 ring-inset ring-ink-600/60" aria-label="Bracket configuration">
+      <section className="mb-6 flex flex-wrap items-end gap-4 rounded-sm border border-line bg-paper p-4" aria-label="Bracket configuration">
         <div>
-          <p className="eyebrow mb-1.5 !text-[10px] text-muted">Bracket preset</p>
+          <p className="kicker mb-1.5 !text-[10px] text-ink-2">Bracket preset</p>
           <Segmented
             ariaLabel="Bracket preset"
             size="md"
@@ -128,18 +128,18 @@ export function BracketModule({ dim }: { dim: Dim }) {
             }}
           >
             <div className="min-w-[260px] flex-1">
-              <label htmlFor={`bp-${dim}`} className="eyebrow mb-1.5 block !text-[10px] text-muted">
+              <label htmlFor={`bp-${dim}`} className="kicker mb-1.5 block !text-[10px] text-ink-2">
                 Custom breakpoints
               </label>
               <input
                 id={`bp-${dim}`}
                 value={customText}
                 onChange={(e) => setCustomText(e.target.value)}
-                className="h-9 w-full rounded-sm bg-ink-850 px-3 font-mono text-[13px] text-white outline-none ring-1 ring-inset ring-ink-600 focus:ring-signal-500"
+                className="h-9 w-full rounded-sm bg-white px-3 text-[13px] text-ink outline-none ring-1 ring-inset ring-line-strong focus:ring-brand"
                 aria-describedby={`bp-${dim}-hint`}
                 aria-invalid={!!parsed.error}
               />
-              <p id={`bp-${dim}-hint`} className={parsed.error ? "mt-1 text-[11.5px] text-negative" : "mt-1 text-[11.5px] text-muted"}>
+              <p id={`bp-${dim}-hint`} className={parsed.error ? "mt-1 text-[11.5px] text-negative" : "mt-1 text-[11.5px] text-ink-2"}>
                 {parsed.error ?? copy.unitHint}
               </p>
             </div>
@@ -148,16 +148,15 @@ export function BracketModule({ dim }: { dim: Dim }) {
             </Button>
           </form>
         ) : (
-          <p className="flex items-center gap-2 pb-2 text-[12.5px] text-muted">
+          <p className="flex items-center gap-2 pb-2 text-[12.5px] text-ink-2">
             <PencilRuler className="h-3.5 w-3.5" aria-hidden />
             {presets.find((p) => p.id === preset)?.description}. Records are re-bucketed from their representative {dim === "ticket" ? "ticket value" : "unit size"}.
           </p>
         )}
       </section>
 
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid gap-6 xl:grid-cols-2">
         <ChartPanel
-          code={`${L}.1`}
           title="Demand share vs supply share"
           subtitle={`% of total by ${copy.noun}`}
           option={opts?.share ?? null}
@@ -167,22 +166,20 @@ export function BracketModule({ dim }: { dim: Dim }) {
           height={330}
         />
         <ChartPanel
-          code={`${L}.2`}
           title="Market imbalance"
-          subtitle="Demand share − supply share (pp) · blue: under-supplied · orange: over-supplied"
+          subtitle="Demand share − supply share (pp) · red: under-supplied · blue: over-supplied"
           option={opts?.gap ?? null}
           table={tbl}
           loading={loading}
           empty={empty}
           height={330}
-          footer={widest && over ? <>Most under-supplied: <span className="text-white">{widest.label}</span> ({formatPp(widest.gapPp)}). Most over-supplied: <span className="text-white">{over.label}</span> ({formatPp(over.gapPp)}).</> : undefined}
+          footer={widest && over ? <>Most under-supplied: <span className="text-ink">{widest.label}</span> ({formatPp(widest.gapPp)}). Most over-supplied: <span className="text-ink">{over.label}</span> ({formatPp(over.gapPp)}).</> : undefined}
         />
       </div>
-      <div className="mt-4 grid gap-4 xl:grid-cols-3">
-        <ChartPanel code={`${L}.3`} title="Demand and supply units" subtitle={`Absolute units by ${copy.noun}`} option={opts?.volume ?? null} table={tbl} loading={loading} empty={empty} height={300} />
-        <ChartPanel code={`${L}.4`} title="Demand share over time" subtitle="Last 8 quarters" option={opts?.shift ?? null} loading={loading} empty={empty} height={300} />
+      <div className="mt-6 grid gap-6 xl:grid-cols-3">
+        <ChartPanel title="Demand and supply units" subtitle={`Absolute units by ${copy.noun}`} option={opts?.volume ?? null} table={tbl} loading={loading} empty={empty} height={300} />
+        <ChartPanel title="Demand share over time" subtitle="Last 8 quarters" option={opts?.shift ?? null} loading={loading} empty={empty} height={300} />
         <ChartPanel
-          code={`${L}.5`}
           title="Quarterly change in share"
           subtitle={qChange[0] ? `${qChange[0].from} → ${qChange[0].to}, percentage points` : "Latest quarter vs previous"}
           option={opts?.qchange ?? null}

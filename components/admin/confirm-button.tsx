@@ -19,7 +19,7 @@ export function ConfirmButton({
   description: string;
   confirmLabel: string;
   onConfirm: () => void;
-  variant?: "secondary" | "ghost" | "outline-light";
+  variant?: "secondary" | "ghost";
   size?: "sm" | "md";
   danger?: boolean;
 }) {
@@ -50,7 +50,7 @@ export function ConfirmButton({
           </>
         }
       >
-        <p className="text-[14px] leading-relaxed text-white/70">{description}</p>
+        <p className="text-[14px] leading-relaxed text-ink">{description}</p>
       </Modal>
     </>
   );

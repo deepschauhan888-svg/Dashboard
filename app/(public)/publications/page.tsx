@@ -5,19 +5,14 @@ import { PublicationLibrary } from "@/components/publications/publication-librar
 
 export const metadata: Metadata = {
   title: "Publications",
-  description: "The MB Research publication library: PropIndex, housing and rental market research, micromarket reports, special reports and the Housing Sentiment Index.",
+  description: "The MB Research library: PropIndex, housing and rental market reports, micromarket reports, the Housing Sentiment Index and special research reports.",
 };
 
 export default function PublicationsPage() {
   return (
     <>
-      <PageHero
-        eyebrow="Publications"
-        title="The Research"
-        accent="Library."
-        lede="Indices, market studies and special reports from MB Research. Entries currently shown are sample placeholders that demonstrate the library — they will be replaced with approved publications and links."
-      />
-      <section className="bg-white py-20 sm:py-24">
+      <PageHero kicker="Publications" title="The research library." lede="Indices, market reports and special studies from MB Research — searchable by title, topic and category." />
+      <section className="bg-white py-16 sm:py-20">
         <Container>
           <Suspense fallback={<div className="h-96" />}>
             <PublicationLibrary />

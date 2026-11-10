@@ -11,21 +11,21 @@ import { breakdownTable } from "@/lib/charts/tables";
 import { formatNumber, formatPct, round } from "@/lib/utils/format";
 import { ChartPanel, type TableData } from "@/components/charts/chart-panel";
 import { Segmented } from "@/components/ui/segmented";
-import { KpiCard } from "@/components/dashboard/kpi-card";
+import { StatStrip } from "@/components/dashboard/stat-strip";
 import { WorkspacePageHeader } from "@/components/dashboard/page-header";
-import { useRegisterExport, useWorkspace } from "@/components/dashboard/workspace-context";
+import { useRegisterExport, useViewFilters, useWorkspace } from "@/components/dashboard/workspace-context";
 
 type Metric = "demand" | "supply";
 
 const COPY: Record<Metric, { code: string; title: string; description: string; noun: string }> = {
   demand: {
-    code: "ANALYST · A",
+    code: "Analyst · Demand",
     title: "Demand Analytics",
     description: "Buyer demand by quarter, configuration, budget, unit size and micromarket — with growth rates and mix shifts.",
     noun: "Demand",
   },
   supply: {
-    code: "ANALYST · B",
+    code: "Analyst · Supply",
     title: "Supply Analytics",
     description: "New supply by quarter, configuration, budget, unit size and micromarket — with growth rates and mix shifts.",
     noun: "Supply",
@@ -49,11 +49,11 @@ function singleBars(rows: BreakdownRow[], metric: Metric, color: string): EChart
 }
 
 export function FlowModule({ metric }: { metric: Metric }) {
-  const { filters, catalog } = useWorkspace();
+  const { catalog } = useWorkspace();
+  const { filters, key } = useViewFilters(metric);
   const svc = getMarketDataService();
   const color = metric === "demand" ? chartColors.demand : chartColors.supply;
   const copy = COPY[metric];
-  const L = metric === "demand" ? "A" : "B";
   const [mixDim, setMixDim] = useState<"bhk" | "ticket" | "size">("bhk");
 
   const { data, loading, error } = useAsync(async () => {
@@ -66,9 +66,9 @@ export function FlowModule({ metric }: { metric: Metric }) {
       svc.getKpis(filters),
     ]);
     return { trend, bhk, ticket, size, mm, kpis };
-  }, [filters.cityId, filters.micromarketId, filters.year, filters.quarter, filters.propertyType]);
+  }, [key]);
 
-  const { data: mix, loading: mixLoading } = useAsync(() => svc.getShareTrend(filters, mixDim, 8), [filters.cityId, filters.micromarketId, filters.year, filters.quarter, filters.propertyType, mixDim]);
+  const { data: mix, loading: mixLoading } = useAsync(() => svc.getShareTrend(filters, mixDim, 8), [key, mixDim]);
 
   const growth = useMemo(() => (data ? growthSeries(data.trend, metric) : []), [data, metric]);
   const empty = !!data && data.kpis.current.recordCount === 0;
@@ -134,20 +134,22 @@ export function FlowModule({ metric }: { metric: Metric }) {
 
   return (
     <div>
-      <WorkspacePageHeader code={copy.code} title={copy.title} description={copy.description} />
+      <WorkspacePageHeader kicker={copy.code} title={copy.title} description={copy.description} />
       {error && <p className="mb-4 text-[13px] text-negative">{error}</p>}
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <KpiCard label={`${copy.noun} · ${k?.period.label ?? ""}`} value={formatNumber(cur)} unit="units" change={comp ? ((cur - comp) / comp) * 100 : null} changeLabel={`${k?.comparisonBasis ?? ""} vs ${k?.comparisonPeriod?.label ?? "—"}`} goodWhen={metric === "demand" ? "up" : "neutral"} sparkColor={color} spark={k?.sparkline.map((s) => s[metric])} loading={loading} />
-        <KpiCard label="Year-on-year" value={formatPct(yoyV ? ((cur - yoyV) / yoyV) * 100 : null)} change={null} deltaText={yoyV ? `from ${formatNumber(yoyV)}` : "n/a"} changeLabel={k?.yoyPeriod?.label ? `in ${k.yoyPeriod.label}` : ""} sparkColor={color} loading={loading} />
-        <KpiCard label="Largest configuration" value={topBhk?.label ?? "—"} change={null} deltaText={topBhk ? `${(metric === "demand" ? topBhk.demandShare : topBhk.supplyShare).toFixed(1)}%` : "n/a"} changeLabel="share of total" sparkColor={color} loading={loading} />
-        <KpiCard label={`Top micromarket by ${metric}`} value={topMm?.label.split(",")[0] ?? "—"} change={null} deltaText={topMm ? formatNumber(topMm[metric]) : "n/a"} changeLabel="units" sparkColor={color} loading={loading} />
-      </div>
+      <StatStrip
+        loading={loading}
+        stats={[
+          { label: `${copy.noun} · ${k?.period.label ?? ""}`, value: formatNumber(cur), unit: "units", change: comp ? ((cur - comp) / comp) * 100 : null, changeLabel: `vs ${k?.comparisonPeriod?.label ?? "—"}`, goodWhen: metric === "demand" ? "up" : "neutral" },
+          { label: "Year-on-year", value: formatPct(yoyV ? ((cur - yoyV) / yoyV) * 100 : null), note: yoyV ? `from ${formatNumber(yoyV)} in ${k?.yoyPeriod?.label}` : "No prior-year period" },
+          { label: "Largest configuration", value: topBhk?.label ?? "—", note: topBhk ? `${(metric === "demand" ? topBhk.demandShare : topBhk.supplyShare).toFixed(1)}% of total` : "" },
+          { label: `Top micromarket`, value: topMm?.label.split(",")[0] ?? "—", note: topMm ? `${formatNumber(topMm[metric])} units` : "" },
+        ]}
+      />
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-2">
-        <ChartPanel code={`${L}.1`} title={`Quarterly ${metric} trend`} subtitle="Units per quarter, last 16 quarters to the selected period" option={opts?.trend ?? null} table={trendTbl} loading={loading} empty={empty} />
+      <div className="mt-6 grid gap-6 xl:grid-cols-2">
+        <ChartPanel title={`Quarterly ${metric} trend`} subtitle="Units per quarter, last 16 quarters to the selected period" option={opts?.trend ?? null} table={trendTbl} loading={loading} empty={empty} />
         <ChartPanel
-          code={`${L}.2`}
           title={`${copy.noun} growth`}
           subtitle="Quarter-on-quarter and year-on-year change, %"
           option={opts?.growth ?? null}
@@ -158,15 +160,14 @@ export function FlowModule({ metric }: { metric: Metric }) {
         />
       </div>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-3">
-        <ChartPanel code={`${L}.3`} title={`BHK-wise ${metric}`} subtitle="Units by configuration" option={opts?.bhk ?? null} table={data ? breakdownTable(data.bhk, "Configuration") : undefined} loading={loading} empty={empty} height={260} />
-        <ChartPanel code={`${L}.4`} title={`Ticket-size-wise ${metric}`} subtitle="Units by budget bracket" option={opts?.ticket ?? null} table={data ? breakdownTable(data.ticket, "Ticket size") : undefined} loading={loading} empty={empty} height={260} />
-        <ChartPanel code={`${L}.5`} title={`Property-size-wise ${metric}`} subtitle="Units by area bracket (sq ft)" option={opts?.size ?? null} table={data ? breakdownTable(data.size, "Unit size") : undefined} loading={loading} empty={empty} height={260} />
+      <div className="mt-6 grid gap-6 xl:grid-cols-3">
+        <ChartPanel title={`BHK-wise ${metric}`} subtitle="Units by configuration" option={opts?.bhk ?? null} table={data ? breakdownTable(data.bhk, "Configuration") : undefined} loading={loading} empty={empty} height={260} />
+        <ChartPanel title={`Ticket-size-wise ${metric}`} subtitle="Units by budget bracket" option={opts?.ticket ?? null} table={data ? breakdownTable(data.ticket, "Ticket size") : undefined} loading={loading} empty={empty} height={260} />
+        <ChartPanel title={`Property-size-wise ${metric}`} subtitle="Units by area bracket (sq ft)" option={opts?.size ?? null} table={data ? breakdownTable(data.size, "Unit size") : undefined} loading={loading} empty={empty} height={260} />
       </div>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-2">
+      <div className="mt-6 grid gap-6 xl:grid-cols-2">
         <ChartPanel
-          code={`${L}.6`}
           title={`Micromarket ${metric} distribution`}
           subtitle={filters.cityId === "all" ? "Top 12 micromarkets across all cities" : `Micromarkets in ${catalog?.cities.find((c) => c.city_id === filters.cityId)?.city_name}`}
           option={opts?.mm ?? null}
@@ -176,7 +177,6 @@ export function FlowModule({ metric }: { metric: Metric }) {
           height={380}
         />
         <ChartPanel
-          code={`${L}.7`}
           title={`${copy.noun} mix shift`}
           subtitle="Share of the total by category, last 8 quarters"
           option={mixOption}

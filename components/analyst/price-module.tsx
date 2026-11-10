@@ -11,12 +11,12 @@ import { BHK_LABELS } from "@/lib/config/dimensions";
 import { formatCompact, formatPct, formatPsf, round } from "@/lib/utils/format";
 import { ChartPanel, type TableData } from "@/components/charts/chart-panel";
 import { Segmented } from "@/components/ui/segmented";
-import { KpiCard } from "@/components/dashboard/kpi-card";
+import { StatStrip } from "@/components/dashboard/stat-strip";
 import { WorkspacePageHeader } from "@/components/dashboard/page-header";
-import { useRegisterExport, useWorkspace } from "@/components/dashboard/workspace-context";
+import { useRegisterExport, useViewFilters } from "@/components/dashboard/workspace-context";
 
 export function PriceModule() {
-  const { filters } = useWorkspace();
+  const { filters, key } = useViewFilters("price");
   const svc = getMarketDataService();
   const [band, setBand] = useState<"1000" | "2500" | "5000">("2500");
   const [mmMetric, setMmMetric] = useState<"price" | "yoy">("price");
@@ -30,11 +30,11 @@ export function PriceModule() {
       svc.getKpis(filters),
     ]);
     return { trend, history, mm, byBhk, kpis };
-  }, [filters.cityId, filters.micromarketId, filters.year, filters.quarter, filters.propertyType]);
+  }, [key]);
 
   const { data: dist, loading: distLoading } = useAsync(
     () => svc.getPriceDistribution(filters, Number(band)),
-    [filters.cityId, filters.micromarketId, filters.year, filters.quarter, filters.propertyType, band],
+    [key, band],
   );
 
   const annual = useMemo(() => {
@@ -108,21 +108,23 @@ export function PriceModule() {
 
   return (
     <div>
-      <WorkspacePageHeader code="ANALYST · C" title="Price Intelligence" description="Supply-weighted average prices (₹ per sq ft), appreciation, micromarket comparison, distribution and configuration-level trends." />
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <KpiCard label="Average price" value={formatPsf(k?.current.avgPrice)} unit="/sq ft" change={k?.comparison?.avgPrice && k.current.avgPrice ? ((k.current.avgPrice - k.comparison.avgPrice) / k.comparison.avgPrice) * 100 : null} changeLabel={`${k?.comparisonBasis ?? ""} vs ${k?.comparisonPeriod?.label ?? "—"}`} sparkColor={chartColors.price} spark={k?.sparkline.map((s) => s.avgPrice)} loading={loading} />
-        <KpiCard label="Appreciation YoY" value={formatPct(k?.priceAppreciationYoY)} change={null} deltaText={k?.yoy ? `from ${formatPsf(k.yoy.avgPrice)}` : "n/a"} changeLabel={k?.yoyPeriod ? `in ${k.yoyPeriod.label}` : ""} sparkColor={chartColors.price} spark={k?.sparkline.map((s) => s.priceYoY)} loading={loading} />
-        <KpiCard label="Since first demo quarter" value={formatPct(annual.length > 1 && annual[0].avg && annual[annual.length - 1].avg ? ((annual[annual.length - 1].avg! - annual[0].avg!) / annual[0].avg!) * 100 : null)} change={null} deltaText={annual.length ? `${annual[0].year} → ${annual[annual.length - 1].year}` : "n/a"} changeLabel="annual averages" sparkColor={chartColors.price} loading={loading} />
-        <KpiCard label="4 BHK+ premium over 1 BHK" value={formatPct(spread)} change={null} deltaText={bhkLatest?.label ?? "n/a"} changeLabel="per sq ft" sparkColor={chartColors.price} loading={loading} />
-      </div>
+      <WorkspacePageHeader kicker="Analyst · Price" title="Price Intelligence" description="Supply-weighted average prices (₹ per sq ft), appreciation, micromarket comparison, distribution and configuration-level trends." />
+      <StatStrip
+        loading={loading}
+        stats={[
+          { label: "Average price", value: formatPsf(k?.current.avgPrice), unit: "/ sq ft", change: k?.comparison?.avgPrice && k.current.avgPrice ? ((k.current.avgPrice - k.comparison.avgPrice) / k.comparison.avgPrice) * 100 : null, changeLabel: `vs ${k?.comparisonPeriod?.label ?? "—"}` },
+          { label: "Appreciation, year-on-year", value: formatPct(k?.priceAppreciationYoY), note: k?.yoy ? `from ${formatPsf(k.yoy.avgPrice)} in ${k.yoyPeriod?.label}` : "No prior-year period" },
+          { label: "Since first quarter on record", value: formatPct(annual.length > 1 && annual[0].avg && annual[annual.length - 1].avg ? ((annual[annual.length - 1].avg! - annual[0].avg!) / annual[0].avg!) * 100 : null), note: annual.length ? `${annual[0].year} → ${annual[annual.length - 1].year}, annual averages` : "" },
+          { label: "4 BHK+ premium over 1 BHK", value: formatPct(spread), note: bhkLatest ? `per sq ft, ${bhkLatest.label}` : "" },
+        ]}
+      />
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-12">
-        <ChartPanel className="xl:col-span-8" code="C.1" title="Quarterly price movement" subtitle="Avg ₹/sq ft and YoY appreciation, last 16 quarters" option={opts?.trend ?? null} table={data ? trendTable(data.trend) : undefined} loading={loading} empty={empty} height={340} />
-        <ChartPanel className="xl:col-span-4" code="C.2" title="Annual price appreciation" subtitle="Change in annual supply-weighted average" option={opts?.annual ?? null} table={annualTbl} loading={loading} empty={empty} height={340} />
+      <div className="mt-6 grid gap-6 xl:grid-cols-12">
+        <ChartPanel className="xl:col-span-8" title="Quarterly price movement" subtitle="Avg ₹/sq ft and YoY appreciation, last 16 quarters" option={opts?.trend ?? null} table={data ? trendTable(data.trend) : undefined} loading={loading} empty={empty} height={340} />
+        <ChartPanel className="xl:col-span-4" title="Annual price appreciation" subtitle="Change in annual supply-weighted average" option={opts?.annual ?? null} table={annualTbl} loading={loading} empty={empty} height={340} />
       </div>
-      <div className="mt-4 grid gap-4 xl:grid-cols-2">
+      <div className="mt-6 grid gap-6 xl:grid-cols-2">
         <ChartPanel
-          code="C.3"
           title="Micromarket price comparison"
           subtitle={filters.cityId === "all" ? "Top 12 micromarkets" : "Micromarkets in the selected city"}
           option={opts?.mm ?? null}
@@ -133,7 +135,6 @@ export function PriceModule() {
           controls={<Segmented ariaLabel="Micromarket metric" value={mmMetric} onChange={setMmMetric} options={[{ value: "price", label: "₹/sq ft" }, { value: "yoy", label: "YoY %" }]} />}
         />
         <ChartPanel
-          code="C.4"
           title="Price distribution"
           subtitle="Demand and supply units by ₹/sq ft band"
           option={distOption}
@@ -144,8 +145,8 @@ export function PriceModule() {
           controls={<Segmented ariaLabel="Band width" value={band} onChange={setBand} options={[{ value: "1000", label: "₹1K" }, { value: "2500", label: "₹2.5K" }, { value: "5000", label: "₹5K" }]} />}
         />
       </div>
-      <div className="mt-4">
-        <ChartPanel code="C.5" title="Price trends by configuration" subtitle="Avg ₹/sq ft by BHK, last 12 quarters" option={opts?.byBhk ?? null} table={bhkTbl} loading={loading} empty={empty} height={320} />
+      <div className="mt-6">
+        <ChartPanel title="Price trends by configuration" subtitle="Avg ₹/sq ft by BHK, last 12 quarters" option={opts?.byBhk ?? null} table={bhkTbl} loading={loading} empty={empty} height={320} />
       </div>
     </div>
   );

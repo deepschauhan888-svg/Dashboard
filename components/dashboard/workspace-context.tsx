@@ -4,18 +4,20 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { MarketCatalog, MarketFilters } from "@/types/market";
 import type { TableData } from "@/components/charts/chart-panel";
 import { getMarketDataService } from "@/lib/services";
+import { ALL_FILTERS, effectiveFilters, filterKey } from "@/lib/analytics/filters";
 import { periodLabel } from "@/lib/analytics/period";
+import { BHK_LABELS } from "@/lib/config/dimensions";
+import { viewBySlug, type WorkspaceView } from "@/lib/config/workspace-nav";
 
-const STORAGE_KEY = "mbri.filters";
+const STORAGE_KEY = "mbri.filters.v2";
 
 interface WorkspaceValue {
   catalog: MarketCatalog | null;
   catalogError: string | null;
+  /** raw selections — use `useViewFilters` in modules */
   filters: MarketFilters;
   setFilter: <K extends keyof MarketFilters>(key: K, value: MarketFilters[K]) => void;
   resetFilters: () => void;
-  scopeLabel: string;
-  /** Datasets registered by the current view for the header Export menu */
   exports: Record<string, TableData>;
   registerExport: (name: string, table: TableData | null) => void;
 }
@@ -23,13 +25,7 @@ interface WorkspaceValue {
 const WorkspaceContext = createContext<WorkspaceValue | null>(null);
 
 function defaults(catalog: MarketCatalog | null): MarketFilters {
-  return {
-    cityId: "all",
-    micromarketId: "all",
-    year: catalog?.latestPeriod.year ?? 2026,
-    quarter: catalog?.latestPeriod.quarter ?? 3,
-    propertyType: "all",
-  };
+  return { ...ALL_FILTERS, year: catalog?.latestPeriod.year ?? 2026, quarter: catalog?.latestPeriod.quarter ?? 3 };
 }
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
@@ -51,12 +47,14 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         } catch {
           /* ignore */
         }
-        // sanitise against the catalog
         const city = cat.cities.find((c) => c.city_id === initial.cityId);
         if (!city) initial.cityId = "all";
         if (!city || !city.micromarkets.some((m) => m.micromarket_id === initial.micromarketId)) initial.micromarketId = "all";
         if (!cat.years.includes(initial.year)) initial.year = cat.latestPeriod.year;
         if (initial.year === cat.latestPeriod.year && initial.quarter !== "all" && initial.quarter > cat.latestPeriod.quarter) initial.quarter = cat.latestPeriod.quarter;
+        if (initial.bhk !== "all" && !cat.bhkConfigurations.includes(initial.bhk)) initial.bhk = "all";
+        if (initial.ticketBracket !== "all" && !cat.ticketBrackets.some((b) => b.id === initial.ticketBracket)) initial.ticketBracket = "all";
+        if (initial.sizeBracket !== "all" && !cat.sizeBrackets.some((b) => b.id === initial.sizeBracket)) initial.sizeBracket = "all";
         setFilters(initial);
         hydrated.current = true;
       })
@@ -100,20 +98,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const scopeLabel = useMemo(() => {
-    if (!catalog) return "";
-    const city = catalog.cities.find((c) => c.city_id === filters.cityId);
-    const mm = city?.micromarkets.find((m) => m.micromarket_id === filters.micromarketId);
-    const geo = mm ? `${mm.micromarket_name}, ${city?.city_name}` : city ? city.city_name : "All covered cities";
-    const period = filters.quarter === "all" ? `CY ${filters.year}` : periodLabel({ year: filters.year, quarter: filters.quarter });
-    const pt = filters.propertyType === "all" ? "All property types" : catalog.propertyTypes.find((p) => p.id === filters.propertyType)?.label;
-    return `${geo} · ${period} · ${pt}`;
-  }, [catalog, filters]);
-
-  const value = useMemo(
-    () => ({ catalog, catalogError, filters, setFilter, resetFilters, scopeLabel, exports, registerExport }),
-    [catalog, catalogError, filters, setFilter, resetFilters, scopeLabel, exports, registerExport],
-  );
+  const value = useMemo(() => ({ catalog, catalogError, filters, setFilter, resetFilters, exports, registerExport }), [catalog, catalogError, filters, setFilter, resetFilters, exports, registerExport]);
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;
 }
 
@@ -121,6 +106,35 @@ export function useWorkspace() {
   const ctx = useContext(WorkspaceContext);
   if (!ctx) throw new Error("useWorkspace must be used inside <WorkspaceProvider>");
   return ctx;
+}
+
+/**
+ * The filters a view should query with: only that view's contextual filters
+ * apply; everything else is "all". Also returns a stable dependency key and a
+ * human-readable scope line.
+ */
+export function useViewFilters(view: WorkspaceView) {
+  const { filters, catalog } = useWorkspace();
+  const visible = viewBySlug(view).filters;
+  const eff = useMemo(() => effectiveFilters(filters, visible), [filters, visible]);
+  const key = filterKey(eff);
+  const scope = useMemo(() => describeScope(eff, catalog, visible), [eff, catalog, visible]);
+  return { filters: eff, key, scope, visible };
+}
+
+export function describeScope(f: MarketFilters, catalog: MarketCatalog | null, visible: string[]) {
+  if (!catalog) return "";
+  const parts: string[] = [];
+  if (visible.includes("cityId")) {
+    const city = catalog.cities.find((c) => c.city_id === f.cityId);
+    const mm = city?.micromarkets.find((m) => m.micromarket_id === f.micromarketId);
+    parts.push(mm ? `${mm.micromarket_name}, ${city?.city_name}` : city ? city.city_name : "All cities");
+  }
+  if (visible.includes("year")) parts.push(f.quarter === "all" ? `CY ${f.year}` : periodLabel({ year: f.year, quarter: f.quarter }));
+  if (f.bhk !== "all") parts.push(BHK_LABELS[f.bhk]);
+  if (f.ticketBracket !== "all") parts.push(catalog.ticketBrackets.find((b) => b.id === f.ticketBracket)?.label ?? "");
+  if (f.sizeBracket !== "all") parts.push(`${catalog.sizeBrackets.find((b) => b.id === f.sizeBracket)?.label ?? ""} sq ft`);
+  return parts.filter(Boolean).join(" · ");
 }
 
 /** Registers a dataset with the header Export menu for as long as the view is mounted. */

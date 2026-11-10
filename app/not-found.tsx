@@ -3,25 +3,20 @@ import { Logo } from "@/components/ui/logo";
 
 export default function NotFound() {
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-ink-900 px-6 text-center text-white">
-      <div className="grid-lines absolute inset-0" aria-hidden />
-      <div className="relative">
-        <Link href="/" aria-label="Home">
-          <Logo />
+    <main className="flex min-h-screen flex-col items-center justify-center bg-white px-6 text-center">
+      <Link href="/" aria-label="Home">
+        <Logo />
+      </Link>
+      <p className="kicker mt-16 text-brand">Page not found</p>
+      <h1 className="display mt-4 text-[40px] sm:text-[52px]">This page does not exist.</h1>
+      <p className="mx-auto mt-4 max-w-md text-ink-2">The address may have changed, or the page may have moved.</p>
+      <div className="mt-10 flex justify-center gap-3">
+        <Link href="/" className="inline-flex h-10 items-center rounded-sm bg-brand px-4 text-sm font-medium text-white hover:bg-brand-dark">
+          Back to home
         </Link>
-        <p className="mt-16 font-mono text-[13px] tracking-[0.3em] text-signal-400">ERROR 404</p>
-        <h1 className="mt-4 text-[40px] font-semibold tracking-tight sm:text-[56px]">
-          No signal <span className="font-serif font-light italic text-signal-200">at this address.</span>
-        </h1>
-        <p className="mx-auto mt-4 max-w-md text-white/60">The page you requested does not exist or has moved.</p>
-        <div className="mt-10 flex justify-center gap-3">
-          <Link href="/" className="inline-flex h-10 items-center rounded-sm bg-signal-500 px-4 text-sm font-medium text-white hover:bg-signal-400">
-            Back to home
-          </Link>
-          <Link href="/dashboard" className="inline-flex h-10 items-center rounded-sm px-4 text-sm font-medium text-white ring-1 ring-inset ring-white/20 hover:ring-white/40">
-            Open workspace
-          </Link>
-        </div>
+        <Link href="/contact" className="inline-flex h-10 items-center rounded-sm px-4 text-sm font-medium ring-1 ring-inset ring-line-strong hover:ring-ink/40">
+          Contact us
+        </Link>
       </div>
     </main>
   );
