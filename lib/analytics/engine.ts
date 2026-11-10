@@ -18,6 +18,7 @@ import type {
   MarketRecord,
   PeriodDescriptor,
   PeriodRef,
+  ScopeFilters,
   ShareTrendPoint,
   TrendPoint,
 } from "@/types/market";
@@ -70,6 +71,12 @@ function finish(acc: Acc, lastPeriodIdx: number | null): Aggregate {
   };
 }
 
+export interface CrossTab {
+  rows: { id: string; label: string }[];
+  cols: { id: string; label: string }[];
+  cells: { x: number; y: number; demand: number; supply: number; demandShare: number; supplyShare: number; gapPp: number }[];
+}
+
 export class AnalyticsEngine {
   private byPeriod = new Map<number, MarketRecord[]>();
 
@@ -94,10 +101,13 @@ export class AnalyticsEngine {
 
   /* ---------------------------------------------------------------- scope */
 
-  private inScope(r: MarketRecord, f: Pick<MarketFilters, "cityId" | "micromarketId" | "propertyType">) {
+  private inScope(r: MarketRecord, f: ScopeFilters) {
     if (f.cityId !== "all" && r.city_id !== f.cityId) return false;
     if (f.micromarketId !== "all" && r.micromarket_id !== f.micromarketId) return false;
     if (f.propertyType !== "all" && r.property_type !== f.propertyType) return false;
+    if (f.bhk !== "all" && r.bhk_configuration !== f.bhk) return false;
+    if (f.ticketBracket !== "all" && r.ticket_size_bracket !== f.ticketBracket) return false;
+    if (f.sizeBracket !== "all" && r.property_size_bracket !== f.sizeBracket) return false;
     return true;
   }
 
@@ -186,7 +196,7 @@ export class AnalyticsEngine {
   }
 
   /** Full history for the scope, all quarters in the dataset. */
-  history(f: Omit<MarketFilters, "year" | "quarter">): TrendPoint[] {
+  history(f: ScopeFilters): TrendPoint[] {
     const total = periodIndex(this.latest) - periodIndex(this.first) + 1;
     return this.trend({ ...f, year: this.latest.year, quarter: this.latest.quarter }, total);
   }
@@ -351,12 +361,60 @@ export class AnalyticsEngine {
       .map(([min, v]) => ({ min, max: min + bandWidth, ...v }));
   }
 
+  /** Two-dimensional breakdown (e.g. BHK × ticket size) for heatmaps. */
+  crossTab(f: MarketFilters, rowDim: BreakdownDimension, colDim: BreakdownDimension): CrossTab {
+    const { current } = this.periods(f);
+    const rk = this.keyFn(rowDim);
+    const ck = this.keyFn(colDim);
+    const cells = new Map<string, { demand: number; supply: number }>();
+    let td = 0;
+    let ts = 0;
+    for (const r of this.selectRecords(f, current)) {
+      const k = `${rk(r)}|${ck(r)}`;
+      const c = cells.get(k) ?? { demand: 0, supply: 0 };
+      c.demand += r.demand;
+      c.supply += r.supply;
+      cells.set(k, c);
+      td += r.demand;
+      ts += r.supply;
+    }
+    const rows = this.categories(rowDim, f);
+    const cols = this.categories(colDim, f);
+    return {
+      rows,
+      cols,
+      cells: rows.flatMap((row, y) =>
+        cols.map((col, x) => {
+          const c = cells.get(`${row.id}|${col.id}`) ?? { demand: 0, supply: 0 };
+          const demandShare = td ? (c.demand / td) * 100 : 0;
+          const supplyShare = ts ? (c.supply / ts) * 100 : 0;
+          return { x, y, demand: c.demand, supply: c.supply, demandShare, supplyShare, gapPp: demandShare - supplyShare };
+        }),
+      ),
+    };
+  }
+
+  /** Per-micromarket quarterly series of a metric, for heatmaps. */
+  micromarketSeries(f: MarketFilters, quarters = 8) {
+    const points = this.trend(f, quarters);
+    const city = this.catalog.cities.find((c) => c.city_id === f.cityId);
+    const mms = city ? city.micromarkets : [];
+    return {
+      quarters: points.map((p) => p.label),
+      micromarkets: mms.map((m) => {
+        const scope = { ...f, micromarketId: m.micromarket_id };
+        const series = points.map((p) => this.aggregate(scope, { label: p.label, quarters: [{ year: p.year, quarter: p.quarter }], partial: false }));
+        return { id: m.micromarket_id, label: m.micromarket_name, series };
+      }),
+    };
+  }
+
   /* ------------------------------------------------------------ compare */
 
   compare(
     ids: string[],
     level: "micromarket" | "city",
-    f: Pick<MarketFilters, "year" | "quarter" | "propertyType">,
+    f: Omit<MarketFilters, "cityId" | "micromarketId">,
     trendQuarters = 12,
   ): EntityComparison[] {
     return ids
@@ -369,14 +427,14 @@ export class AnalyticsEngine {
           if (!c) return null;
           label = c.city_name;
           cityName = c.city_name;
-          scope = { cityId: id, micromarketId: "all", ...f };
+          scope = { ...f, cityId: id, micromarketId: "all" } as MarketFilters;
         } else {
           const c = this.catalog.cities.find((x) => x.micromarkets.some((m) => m.micromarket_id === id));
           const m = c?.micromarkets.find((x) => x.micromarket_id === id);
           if (!c || !m) return null;
           label = m.micromarket_name;
           cityName = c.city_name;
-          scope = { cityId: c.city_id, micromarketId: id, ...f };
+          scope = { ...f, cityId: c.city_id, micromarketId: id } as MarketFilters;
         }
         const k = this.kpis(scope);
         return {
@@ -394,7 +452,7 @@ export class AnalyticsEngine {
   }
 
   /** Aggregate for an arbitrary period range (historical comparisons). */
-  rangeAggregate(f: Omit<MarketFilters, "year" | "quarter">, from: PeriodRef, to: PeriodRef): Aggregate | null {
+  rangeAggregate(f: ScopeFilters, from: PeriodRef, to: PeriodRef): Aggregate | null {
     const quarters: PeriodRef[] = [];
     for (let i = periodIndex(from); i <= periodIndex(to); i++) {
       const p = fromIndex(i);

@@ -61,7 +61,7 @@ export interface ValidationReport {
 
 export function validateDataset(
   text: string,
-  opts: { fileName: string; datasetType: DatasetType; year: number; quarter: number; cityId: string | "all"; catalog: MarketCatalog },
+  opts: { fileName: string; datasetType: DatasetType; year: number; quarter: number; cityId: string | "all"; micromarketId?: string | "all"; catalog: MarketCatalog },
 ): ValidationReport {
   const rows = parseCsv(text);
   const issues: ValidationIssue[] = [];
@@ -83,6 +83,7 @@ export function validateDataset(
   let inventory = 0;
   let periodMismatch = 0;
   let cityMismatch = 0;
+  let mmMismatch = 0;
 
   if (!missing.length) {
     data.forEach((r, i) => {
@@ -107,6 +108,7 @@ export function validateDataset(
       if (!mmToCity.has(mm)) issues.push({ row: rowNo, column: "micromarket_id", message: `Unknown micromarket "${mm}"`, severity: "error" });
       else if (mmToCity.get(mm) !== city) issues.push({ row: rowNo, column: "micromarket_id", message: `Micromarket "${mm}" does not belong to "${city}"`, severity: "error" });
       if (opts.cityId !== "all" && city !== opts.cityId) cityMismatch++;
+      if (opts.micromarketId && opts.micromarketId !== "all" && mm !== opts.micromarketId) mmMismatch++;
 
       const y = num("reporting_year", { int: true });
       const q = num("reporting_quarter", { int: true, min: 1 });
@@ -133,6 +135,7 @@ export function validateDataset(
   }
 
   if (periodMismatch) issues.push({ row: 0, column: "reporting_year/quarter", message: `${periodMismatch} row(s) do not match the selected reporting period Q${opts.quarter} ${opts.year}`, severity: "error" });
+  if (mmMismatch) issues.push({ row: 0, column: "micromarket_id", message: `${mmMismatch} row(s) belong to a different micromarket than the one selected`, severity: "error" });
   if (cityMismatch) issues.push({ row: 0, column: "city_id", message: `${cityMismatch} row(s) belong to a different city than the one selected`, severity: "error" });
 
   const errorsIn = (pred: (i: ValidationIssue) => boolean) => issues.filter((i) => i.severity === "error" && pred(i)).length;
@@ -171,9 +174,9 @@ export function validateDataset(
 }
 
 /** Builds a template CSV from demo records for the chosen period/city. */
-export function buildTemplateCsv(records: MarketRecord[], year: number, quarter: number, cityId: string | "all", withErrors = false): string {
+export function buildTemplateCsv(records: MarketRecord[], year: number, quarter: number, cityId: string | "all", withErrors = false, micromarketId: string | "all" = "all"): string {
   const rows = records
-    .filter((r) => r.reporting_year === year && r.reporting_quarter === quarter && (cityId === "all" || r.city_id === cityId))
+    .filter((r) => r.reporting_year === year && r.reporting_quarter === quarter && (cityId === "all" || r.city_id === cityId) && (micromarketId === "all" || r.micromarket_id === micromarketId))
     .slice(0, 60)
     .map((r) => [r.city_id, r.micromarket_id, r.reporting_year, r.reporting_quarter, r.property_type, r.bhk_configuration, r.unit_size_sqft, r.demand, r.supply, r.average_price, r.inventory]);
   if (withErrors && rows.length > 6) {

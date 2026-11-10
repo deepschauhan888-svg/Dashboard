@@ -55,4 +55,6 @@ export class ApiMarketDataService implements MarketDataService {
   getRangeAggregate: MarketDataService["getRangeAggregate"] = (f, from, to) =>
     this.get("/v1/range", { ...f, from: `${from.year}-Q${from.quarter}`, to: `${to.year}-Q${to.quarter}` });
   getObservations: MarketDataService["getObservations"] = (f) => this.get("/v1/observations", { ...f });
+  getCrossTab: MarketDataService["getCrossTab"] = (f, rowDim, colDim) => this.get("/v1/cross-tab", { ...f, rowDim, colDim });
+  getMicromarketSeries: MarketDataService["getMicromarketSeries"] = (f, quarters) => this.get("/v1/micromarket-series", { ...f, quarters });
 }

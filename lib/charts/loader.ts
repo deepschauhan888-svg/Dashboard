@@ -20,6 +20,8 @@ export function loadECharts(): Promise<CoreModule> {
         charts.LineChart,
         charts.BarChart,
         charts.ScatterChart,
+        charts.HeatmapChart,
+        charts.PieChart,
         components.GridComponent,
         components.TooltipComponent,
         components.LegendComponent,
@@ -27,6 +29,7 @@ export function loadECharts(): Promise<CoreModule> {
         components.MarkAreaComponent,
         components.MarkPointComponent,
         components.AriaComponent,
+        components.VisualMapComponent,
         renderers.CanvasRenderer,
       ]);
       core.registerTheme("mbri", echartsTheme);

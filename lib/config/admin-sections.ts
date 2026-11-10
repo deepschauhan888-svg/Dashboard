@@ -7,7 +7,6 @@ export const ADMIN_SECTIONS = {
   clients: "Client Management",
   subscriptions: "Subscription Management",
   permissions: "Access Permissions",
-  settings: "Platform Settings",
 } as const;
 
 export type AdminSectionSlug = keyof typeof ADMIN_SECTIONS;

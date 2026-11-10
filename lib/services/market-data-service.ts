@@ -20,9 +20,18 @@ import type {
   MarketFilters,
   Observation,
   PeriodRef,
+  ScopeFilters,
   ShareTrendPoint,
   TrendPoint,
 } from "@/types/market";
+
+import type { CrossTab } from "@/lib/analytics/engine";
+export type { CrossTab };
+
+export interface MicromarketSeries {
+  quarters: string[];
+  micromarkets: { id: string; label: string; series: (Aggregate | null)[] }[];
+}
 
 export interface PriceBand {
   min: number;
@@ -42,7 +51,7 @@ export interface MarketDataService {
   getCatalog(): Promise<MarketCatalog>;
   getKpis(filters: MarketFilters): Promise<KpiSet>;
   getTrend(filters: MarketFilters, quarters?: number): Promise<TrendPoint[]>;
-  getHistory(filters: Omit<MarketFilters, "year" | "quarter">): Promise<TrendPoint[]>;
+  getHistory(filters: ScopeFilters): Promise<TrendPoint[]>;
   getBreakdown(filters: MarketFilters, dimension: BreakdownDimension, options?: BreakdownOptions): Promise<BreakdownRow[]>;
   getShareTrend(
     filters: MarketFilters,
@@ -55,13 +64,15 @@ export interface MarketDataService {
   compare(
     ids: string[],
     level: "micromarket" | "city",
-    filters: Pick<MarketFilters, "year" | "quarter" | "propertyType">,
+    filters: Omit<MarketFilters, "cityId" | "micromarketId">,
     trendQuarters?: number,
   ): Promise<EntityComparison[]>;
   getRangeAggregate(
-    filters: Omit<MarketFilters, "year" | "quarter">,
+    filters: ScopeFilters,
     from: PeriodRef,
     to: PeriodRef,
   ): Promise<Aggregate | null>;
   getObservations(filters: MarketFilters): Promise<Observation[]>;
+  getCrossTab(filters: MarketFilters, rowDim: BreakdownDimension, colDim: BreakdownDimension): Promise<CrossTab>;
+  getMicromarketSeries(filters: MarketFilters, quarters?: number): Promise<MicromarketSeries>;
 }

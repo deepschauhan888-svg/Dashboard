@@ -87,8 +87,17 @@ export interface MarketFilters {
   micromarketId: string | "all";
   year: number;
   quarter: Quarter | "all";
+  /** retained in the model; not exposed as a filter in the current UI */
   propertyType: PropertyType | "all";
+  bhk: BhkConfiguration | "all";
+  /** id of a default ticket-size bracket */
+  ticketBracket: string | "all";
+  /** id of a default property-size bracket */
+  sizeBracket: string | "all";
 }
+
+/** Filters that define the geographic / product scope (everything except the period). */
+export type ScopeFilters = Omit<MarketFilters, "year" | "quarter">;
 
 export interface Aggregate {
   demand: number;

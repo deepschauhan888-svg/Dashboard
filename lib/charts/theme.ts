@@ -1,34 +1,36 @@
 /**
- * Chart design tokens. One palette for the whole product.
+ * Chart design tokens — one palette for the whole product.
  *
- * Categorical slots were validated (lightness band, chroma floor, adjacent
- * CVD ΔE ≥ 8, normal-vision ΔE ≥ 15, ≥3:1 contrast) against the dark chart
- * surface #0C1C31. Colour follows the ENTITY, never its rank:
- *   demand → slot 1 (electric blue), supply → slot 2 (orange),
- *   price → slot 3 (aqua). Comparisons assign slots in selection order and
- *   survivors keep their colour when another entity is removed.
+ * Categorical slots were validated on the white surface (#FFFFFF) for the
+ * lightness band, chroma floor, adjacent CVD ΔE ≥ 8, normal-vision ΔE ≥ 15
+ * and ≥ 3:1 contrast. Red is the primary analytical series; the remaining
+ * slots are restrained supporting hues.
+ *
+ * Colour follows the ENTITY, never its rank: demand → red, supply → steel
+ * blue. Price, when plotted alone, uses the primary red. Comparisons assign
+ * slots in selection order and survivors keep their colour.
  */
 export const chartColors = {
-  surface: "#0C1C31",
-  surfaceRaised: "#10243B",
-  grid: "#16304D",
-  axis: "#24406A",
-  textPrimary: "#E8EEF7",
-  textSecondary: "#A3AFC2",
-  textMuted: "#8995A7",
-  demand: "#318BFF",
-  supply: "#E2702F",
-  price: "#199E70",
-  categorical: ["#318BFF", "#E2702F", "#199E70", "#C98500", "#D55181", "#9085E9"],
-  /** ordinal ramp for ordered categories (BHK, budget, size) on dark surface */
-  ordinal: ["#9EC5F4", "#6DA7EC", "#5598E7", "#3987E5", "#256ABF", "#184F95"],
-  positive: "#20B486",
-  negative: "#E56C70",
-  neutral: "#5B6779",
+  surface: "#FFFFFF",
+  grid: "#F0F0F0",
+  axis: "#D9D9D9",
+  textPrimary: "#252525",
+  textSecondary: "#5E5E5E",
+  textMuted: "#747474",
+  demand: "#B5122B",
+  supply: "#3A76B4",
+  price: "#B5122B",
+  categorical: ["#B5122B", "#3A76B4", "#B8841A", "#16876A", "#8F55B5"],
+  /** sequential red ramp (light → dark) for ordered categories and heatmaps */
+  ordinal: ["#F5CDD3", "#EBA0AC", "#DB6478", "#C42F47", "#A0142B", "#6E0C1C"],
+  /** diverging: supply-led (blue) ← neutral grey → demand-led (red) */
+  diverging: ["#2F5F91", "#7FA4CC", "#EDEDED", "#DB6478", "#A0142B"],
+  positive: "#24845D",
+  negative: "#C44242",
+  neutral: "#9A9A9A",
 };
 
 export const fontStack = "var(--font-ui), Inter, system-ui, sans-serif";
-export const monoStack = "var(--font-data), ui-monospace, monospace";
 
 export const echartsTheme = {
   backgroundColor: "transparent",
@@ -44,7 +46,7 @@ export const echartsTheme = {
   valueAxis: {
     axisLine: { show: false },
     axisTick: { show: false },
-    axisLabel: { color: chartColors.textMuted, fontSize: 11, fontFamily: monoStack },
+    axisLabel: { color: chartColors.textMuted, fontSize: 11, fontFamily: fontStack },
     splitLine: { show: true, lineStyle: { color: chartColors.grid, type: "solid", width: 1 } },
   },
   legend: {
@@ -55,15 +57,15 @@ export const echartsTheme = {
     itemGap: 18,
   },
   tooltip: {
-    backgroundColor: "#0A1729",
-    borderColor: "#24406A",
+    backgroundColor: "#FFFFFF",
+    borderColor: "#EAEAEA",
     borderWidth: 1,
     padding: [10, 12],
     textStyle: { color: chartColors.textPrimary, fontSize: 12, fontFamily: fontStack },
-    extraCssText: "box-shadow: 0 12px 32px rgba(0,0,0,0.45); border-radius: 4px;",
+    extraCssText: "box-shadow: 0 10px 30px -12px rgba(0,0,0,0.18); border-radius: 4px;",
     axisPointer: {
-      lineStyle: { color: "#3A5A85", width: 1 },
-      crossStyle: { color: "#3A5A85" },
+      lineStyle: { color: "#BDBDBD", width: 1 },
+      crossStyle: { color: "#BDBDBD" },
     },
   },
 };

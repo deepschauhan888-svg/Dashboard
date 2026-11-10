@@ -5,7 +5,7 @@
  */
 import type { EChartsOption } from "echarts";
 import type { BreakdownRow, EntityComparison, TrendPoint } from "@/types/market";
-import { chartColors, monoStack } from "./theme";
+import { chartColors, fontStack } from "./theme";
 import { formatCompact, formatNumber, formatPct, formatPp, formatPsf, formatRatio } from "@/lib/utils/format";
 
 type Fmt = (v: number | null) => string;
@@ -33,7 +33,7 @@ const dot = (c: unknown) =>
 const row = (color: unknown, label: string, value: string) =>
   `<div style="display:flex;justify-content:space-between;gap:24px;align-items:center;line-height:20px">` +
   `<span style="color:${chartColors.textSecondary}">${dot(color)}${label}</span>` +
-  `<span style="font-family:${monoStack};color:${chartColors.textPrimary}">${value}</span></div>`;
+  `<span style="font-family:${fontStack};font-variant-numeric:tabular-nums;font-weight:600;color:${chartColors.textPrimary}">${value}</span></div>`;
 
 const head = (t: string) =>
   `<div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:${chartColors.textMuted};margin-bottom:6px">${t}</div>`;
@@ -119,7 +119,7 @@ export function demandSupplyOption(points: TrendPoint[], opts: { highlightKey?: 
         ...baseLine("Demand", points.map((p) => p.demand), chartColors.demand, { area: true }),
         markArea:
           hi >= 0
-            ? { silent: true, itemStyle: { color: "rgba(49,139,255,0.06)" }, data: [[{ xAxis: labels[hi] }, { xAxis: labels[hi] }]] }
+            ? { silent: true, itemStyle: { color: "rgba(181,18,43,0.05)" }, data: [[{ xAxis: labels[hi] }, { xAxis: labels[hi] }]] }
             : undefined,
       },
       baseLine("Supply", points.map((p) => p.supply), chartColors.supply),
@@ -192,7 +192,7 @@ export function shareComparisonOption(rows: BreakdownRow[], opts: { horizontal?:
     grid: { left: 8, right: 24, top: 32, bottom: 4, containLabel: true },
     tooltip: {
       trigger: "axis",
-      axisPointer: { type: "shadow", shadowStyle: { color: "rgba(255,255,255,0.03)" } },
+      axisPointer: { type: "shadow", shadowStyle: { color: "rgba(0,0,0,0.035)" } },
       formatter: axisTooltip({ "Demand share": (v) => formatPct(v, 1, false), "Supply share": (v) => formatPct(v, 1, false) }, (i) => {
         const r = order[i];
         return r ? row("transparent", "Gap (demand − supply)", formatPp(r.gapPp)) + row("transparent", "Demand units", formatNumber(r.demand)) + row("transparent", "Supply units", formatNumber(r.supply)) : "";
@@ -245,7 +245,7 @@ export function gapOption(rows: BreakdownRow[]): EChartsOption {
           value: Math.round(r.gapPp * 10) / 10,
           itemStyle: { color: r.gapPp >= 0 ? chartColors.demand : chartColors.supply, borderRadius: r.gapPp >= 0 ? [0, 4, 4, 0] : [4, 0, 0, 4] },
         })),
-        label: { show: true, position: "right", color: chartColors.textSecondary, fontFamily: monoStack, fontSize: 11, formatter: (p: unknown) => formatPp(numericValue((p as TipParam).value)) },
+        label: { show: true, position: "right", color: chartColors.textSecondary, fontFamily: fontStack, fontSize: 11, formatter: (p: unknown) => formatPp(numericValue((p as TipParam).value)) },
         markLine: { silent: true, symbol: "none", lineStyle: { color: chartColors.axis, type: "solid" }, label: { show: false }, data: [{ xAxis: 0 }] },
       },
     ],
@@ -260,7 +260,7 @@ export function volumeBarsOption(rows: BreakdownRow[]): EChartsOption {
     grid: { left: 8, right: 16, top: 34, bottom: 4, containLabel: true },
     tooltip: {
       trigger: "axis",
-      axisPointer: { type: "shadow", shadowStyle: { color: "rgba(255,255,255,0.03)" } },
+      axisPointer: { type: "shadow", shadowStyle: { color: "rgba(0,0,0,0.035)" } },
       formatter: axisTooltip(formatNumber, (i) => row("transparent", "D/S ratio", formatRatio(rows[i]?.dsRatio ?? null))),
     },
     xAxis: { type: "category", data: rows.map((r) => r.label), axisLabel: { interval: 0, hideOverlap: true, color: chartColors.textSecondary } },
@@ -292,7 +292,7 @@ export function rankedBarsOption(
         barMaxWidth: 12,
         data: order.map((r) => r.value),
         itemStyle: { color: opts.color ?? chartColors.demand, borderRadius: [0, 4, 4, 0] },
-        label: { show: true, position: "right", color: chartColors.textSecondary, fontFamily: monoStack, fontSize: 11, formatter: (p: unknown) => f(numericValue((p as TipParam).value)) },
+        label: { show: true, position: "right", color: chartColors.textSecondary, fontFamily: fontStack, fontSize: 11, formatter: (p: unknown) => f(numericValue((p as TipParam).value)) },
       },
     ],
   });
@@ -327,7 +327,7 @@ export function entityBarsOption(
     aria: { enabled: true },
     legend: { top: 0, left: 0 },
     grid: { left: 8, right: 16, top: 34, bottom: 4, containLabel: true },
-    tooltip: { trigger: "axis", axisPointer: { type: "shadow", shadowStyle: { color: "rgba(255,255,255,0.03)" } }, formatter: axisTooltip(f) },
+    tooltip: { trigger: "axis", axisPointer: { type: "shadow", shadowStyle: { color: "rgba(0,0,0,0.035)" } }, formatter: axisTooltip(f) },
     xAxis: { type: "category", data: categories, axisLabel: { interval: 0, color: chartColors.textSecondary } },
     yAxis: { type: "value", axisLabel: { formatter: (v: number) => formatCompact(v) } },
     series: series.map((s) => ({ name: s.name, type: "bar" as const, barGap: "18%", barMaxWidth: 22, data: s.data, itemStyle: { color: s.color, borderRadius: [4, 4, 0, 0] } })),
@@ -346,7 +346,7 @@ export function mixStackOption(
     aria: { enabled: true },
     legend: { top: 0, left: 0, type: "scroll", pageTextStyle: { color: chartColors.textMuted } },
     grid: { left: 8, right: 16, top: 34, bottom: 4, containLabel: true },
-    tooltip: { trigger: "axis", axisPointer: { type: "shadow", shadowStyle: { color: "rgba(255,255,255,0.03)" } }, formatter: axisTooltip((v) => formatPct(v, 1, false)) },
+    tooltip: { trigger: "axis", axisPointer: { type: "shadow", shadowStyle: { color: "rgba(0,0,0,0.035)" } }, formatter: axisTooltip((v) => formatPct(v, 1, false)) },
     xAxis: { type: "value", max: 100, axisLabel: { formatter: (v: number) => `${v}%` } },
     yAxis: { type: "category", data: [...entities].reverse(), axisLabel: { color: chartColors.textSecondary, width: 140, overflow: "truncate" } },
     series: categories.map((c, ci) => ({
@@ -381,7 +381,7 @@ export function priceDistributionOption(bands: { min: number; max: number; deman
     aria: { enabled: true },
     legend: { top: 0, left: 0, data: ["Demand", "Supply"] },
     grid: { left: 8, right: 16, top: 34, bottom: 4, containLabel: true },
-    tooltip: { trigger: "axis", axisPointer: { type: "shadow", shadowStyle: { color: "rgba(255,255,255,0.03)" } }, formatter: axisTooltip(formatNumber) },
+    tooltip: { trigger: "axis", axisPointer: { type: "shadow", shadowStyle: { color: "rgba(0,0,0,0.035)" } }, formatter: axisTooltip(formatNumber) },
     xAxis: { type: "category", data: labels, axisLabel: { hideOverlap: true }, name: "₹ per sq ft", nameLocation: "middle", nameGap: 28, nameTextStyle: { color: chartColors.textMuted, fontSize: 11 } },
     yAxis: { type: "value", axisLabel: { formatter: (v: number) => formatCompact(v) } },
     series: [
@@ -446,4 +446,77 @@ export function comparisonTrendOption(
     })),
     { format: fmt, axisFormat: metric === "dsRatio" ? (v) => `${v.toFixed(1)}×` : metric === "avgPrice" ? (v) => `₹${formatCompact(v)}` : undefined },
   );
+}
+
+/** Heatmap for two categorical dimensions. Values are coloured on a diverging
+ *  (pp gap) or sequential (share / ratio) scale. */
+export function heatmapOption(
+  xLabels: string[],
+  yLabels: string[],
+  cells: { x: number; y: number; value: number | null; detail?: string }[],
+  opts: { diverging?: boolean; min?: number; max?: number; format: Fmt; seriesName: string },
+): EChartsOption {
+  const vals = cells.map((c) => c.value).filter((v): v is number => v !== null);
+  const absMax = Math.max(0.0001, ...vals.map((v) => Math.abs(v)));
+  const min = opts.min ?? (opts.diverging ? -absMax : Math.min(...vals));
+  const max = opts.max ?? (opts.diverging ? absMax : Math.max(...vals));
+  return asOption({
+    aria: { enabled: true },
+    grid: { left: 8, right: 16, top: 8, bottom: 56, containLabel: true },
+    tooltip: {
+      trigger: "item",
+      formatter: (raw: unknown) => {
+        const p = raw as { data?: [number, number, number | null]; dataIndex?: number };
+        const c = cells[p.dataIndex ?? 0];
+        return head(`${yLabels[c.y]} · ${xLabels[c.x]}`) + row("transparent", opts.seriesName, opts.format(c.value)) + (c.detail ? `<div style="color:${chartColors.textMuted};margin-top:4px">${c.detail}</div>` : "");
+      },
+    },
+    xAxis: { type: "category", data: xLabels, splitArea: { show: false }, axisLabel: { interval: 0, hideOverlap: true, color: chartColors.textSecondary } },
+    yAxis: { type: "category", data: yLabels, axisLabel: { color: chartColors.textSecondary } },
+    visualMap: {
+      min,
+      max,
+      calculable: false,
+      orient: "horizontal",
+      left: "center",
+      bottom: 4,
+      itemWidth: 10,
+      itemHeight: 120,
+      text: [opts.format(max), opts.format(min)],
+      textStyle: { color: chartColors.textMuted, fontSize: 11 },
+      inRange: { color: opts.diverging ? chartColors.diverging : chartColors.ordinal.slice(0, 5) },
+    },
+    series: [
+      {
+        name: opts.seriesName,
+        type: "heatmap",
+        data: cells.map((c) => [c.x, c.y, c.value === null ? "-" : Math.round(c.value * 10) / 10]),
+        itemStyle: { borderColor: "#FFFFFF", borderWidth: 2 },
+        label: { show: true, fontSize: 11, color: "#252525", formatter: (p: unknown) => { const d = (p as { data: [number, number, number | string] }).data; return typeof d[2] === "number" ? opts.format(d[2]) : ""; } },
+        emphasis: { itemStyle: { borderColor: "#252525", borderWidth: 1 } },
+      },
+    ],
+  });
+}
+
+/** Donut — used only for a single part-to-whole with ≤ 5 parts. */
+export function donutOption(parts: { name: string; value: number; color: string }[], opts: { format: Fmt; center?: string }): EChartsOption {
+  const total = parts.reduce((a, p) => a + p.value, 0);
+  return asOption({
+    aria: { enabled: true },
+    tooltip: { trigger: "item", formatter: (raw: unknown) => { const p = raw as { name: string; value: number; color: string }; return head(p.name) + row(p.color, "Share", `${((p.value / total) * 100).toFixed(1)}%`) + row("transparent", "Units", opts.format(p.value)); } },
+    legend: { bottom: 0, left: "center" },
+    series: [
+      {
+        type: "pie",
+        radius: ["58%", "80%"],
+        center: ["50%", "44%"],
+        avoidLabelOverlap: true,
+        itemStyle: { borderColor: "#FFFFFF", borderWidth: 2 },
+        label: { show: true, position: "center", formatter: () => opts.center ?? "", fontSize: 13, color: chartColors.textSecondary, lineHeight: 18 },
+        labelLine: { show: false },
+        data: parts.map((p) => ({ name: p.name, value: p.value, itemStyle: { color: p.color } })),
+      },
+    ],
+  });
 }

@@ -7,11 +7,12 @@
  * `externalUrl` / `pdfUrl` to the original source. Set `isPlaceholder: false`
  * once an entry is real — the "Sample entry" label then disappears.
  */
+import { siteConfig } from "./site";
 
 export type PublicationCategory =
   | "PropIndex"
-  | "Housing Market Research"
-  | "Rental Market Research"
+  | "Housing Market Reports"
+  | "Rental Market Reports"
   | "Micromarket Reports"
   | "Special Research Reports"
   | "Housing Sentiment Index";
@@ -36,11 +37,11 @@ export interface Publication {
 
 export const PUBLICATION_CATEGORIES: { id: PublicationCategory; description: string }[] = [
   { id: "PropIndex", description: "Periodic tracking of residential price and supply movements across major cities." },
-  { id: "Housing Market Research", description: "In-depth studies of residential demand, supply and buyer behaviour." },
-  { id: "Rental Market Research", description: "Rental values, yields and tenant demand across urban markets." },
+  { id: "Housing Market Reports", description: "In-depth studies of residential demand, supply and buyer behaviour." },
+  { id: "Rental Market Reports", description: "Rental values, yields and tenant demand across urban markets." },
   { id: "Micromarket Reports", description: "Locality-level analysis for developers evaluating specific catchments." },
-  { id: "Special Research Reports", description: "Thematic research on policy, infrastructure and emerging segments." },
   { id: "Housing Sentiment Index", description: "Measurement of buyer and seller sentiment towards the housing market." },
+  { id: "Special Research Reports", description: "Thematic research on policy, infrastructure and emerging segments." },
 ];
 
 export const publications: Publication[] = [
@@ -73,7 +74,7 @@ export const publications: Publication[] = [
   {
     slug: "housing-market-outlook-sample",
     title: "Residential Market Outlook",
-    category: "Housing Market Research",
+    category: "Housing Market Reports",
     date: "2026-09-05",
     summary: "Sample entry for a long-form housing market study covering demand drivers, supply pipeline and pricing dynamics.",
     scope: ["Demand drivers by city", "Supply pipeline assessment", "Pricing dynamics"],
@@ -86,7 +87,7 @@ export const publications: Publication[] = [
   {
     slug: "buyer-preferences-study-sample",
     title: "Homebuyer Preferences Study",
-    category: "Housing Market Research",
+    category: "Housing Market Reports",
     date: "2026-04-12",
     summary: "Sample entry for a study of configuration, budget and amenity preferences among prospective homebuyers.",
     scope: ["Configuration preferences", "Budget brackets", "Amenity priorities"],
@@ -99,7 +100,7 @@ export const publications: Publication[] = [
   {
     slug: "rental-market-review-sample",
     title: "Urban Rental Market Review",
-    category: "Rental Market Research",
+    category: "Rental Market Reports",
     date: "2026-08-22",
     summary: "Sample entry for rental market research covering rental values, yields and tenant demand across major cities.",
     scope: ["Rental value trends", "Gross rental yields", "Tenant demand patterns"],
@@ -112,7 +113,7 @@ export const publications: Publication[] = [
   {
     slug: "rental-yield-tracker-sample",
     title: "Rental Yield Tracker",
-    category: "Rental Market Research",
+    category: "Rental Market Reports",
     date: "2026-02-28",
     summary: "Sample entry for a periodic tracker of rental yields by city and configuration.",
     scope: ["Yield by configuration", "City comparisons"],
@@ -202,10 +203,11 @@ export const publications: Publication[] = [
   },
 ];
 
-export function getPublication(slug: string) {
-  return publications.find((p) => p.slug === slug) ?? null;
+/** Publications visible on the site. Sample entries appear only while siteConfig.showSampleContent is true. */
+export function visiblePublications(): Publication[] {
+  return publications.filter((p) => !p.isPlaceholder || siteConfig.showSampleContent).sort((a, b) => b.date.localeCompare(a.date));
 }
 
-export function sortedPublications() {
-  return [...publications].sort((a, b) => b.date.localeCompare(a.date));
+export function getPublication(slug: string) {
+  return visiblePublications().find((p) => p.slug === slug) ?? null;
 }

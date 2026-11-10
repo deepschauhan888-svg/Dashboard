@@ -12,11 +12,11 @@ Enterprise real estate market intelligence platform by **MB Research, Magicbrick
 |---|---|
 | Framework | Next.js 15 (App Router), React 19 |
 | Language | TypeScript (strict) |
-| Styling | Tailwind CSS v4 with design tokens in `app/globals.css` (`@theme`) |
+| Styling | Tailwind CSS v4 with design tokens in `app/globals.css` (`@theme`). Identity: white + red (#B5122B) + charcoal (#252525) |
 | Motion | Framer Motion |
 | Charts | Apache ECharts 5 (tree-shaken, lazy-loaded) |
 | Icons | Lucide |
-| Fonts | Inter Tight (UI), Source Serif 4 (editorial), JetBrains Mono (data), all via `next/font` |
+| Fonts | Inter (UI and figures), Source Serif 4 (editorial headlines), via `next/font` |
 
 ## Getting started
 
@@ -73,12 +73,12 @@ No secrets or production credentials are committed.
 
 ```
 app/
-  (public)/            Public website: home, platform, about, publications, clients, contact, legal
-  login/               Split-screen login + demo access
+  (public)/            Home, Platform, About MB Research, Publications, Clients & Collaborations, Contact, legal
+  login/               Login + demo access
   dashboard/           Client workspace (auth-guarded layout)
-    page.tsx           Executive Market Overview
-    analyst/[module]/  Analyst modules A–H
-  admin/               Admin console (overview + 9 sections)
+    page.tsx           Executive overview
+    analyst/[module]/  demand · supply · price · bhk · ticket-size · property-size · micromarkets · history · comparison
+  admin/               Admin console: overview, upload, validation, history, cities, micromarkets, clients, subscriptions, permissions
   globals.css          Design tokens (colours, fonts, radii) + base styles
 components/
   layout/ home/ platform/ publications/ clients/ forms/ media/
@@ -126,15 +126,34 @@ components  ──►  MarketDataService (interface, async)
 - **Monthly or quarterly uploads:** a server-side ingestion pipeline reusing the rules in `lib/admin/dataset-validation.ts`, with Excel parsing, staging tables, validation, publishing as a new version, rollback, and historical retention.
 - **Subscriptions:** plans and assignments as modelled in the admin console, with billing integration.
 
+## Content architecture (single source of truth)
+
+Each subject lives on exactly one page, with its copy in one config file:
+
+| Subject | Page | Source |
+|---|---|---|
+| Platform capabilities (10 modules) | `/platform` | `lib/config/platform-modules.ts` |
+| Home introduction and four-question overview | `/` | `lib/config/home.ts` (worded differently from the module descriptions) |
+| Institutional profile, philosophy, methodology | `/about` | `lib/config/about.ts` |
+| Publications | `/publications` | `lib/config/publications.ts` |
+| Clients; research and institutional collaborations | `/clients` | `lib/config/clients.ts` |
+| Contact details | `/contact`, footer | `lib/config/site.ts` |
+
+`siteConfig.showSampleContent` (in `lib/config/site.ts`) controls the clearly labelled sample publications and logo slots used for the management review. **Set it to `false` before public launch.** Sample content then disappears, and only approved entries are shown. Contact details, About-page figures and social links render only when configured. Nothing unconfirmed is ever shown.
+
+## Workspace filters
+
+Filters are contextual. Each view shows only the filters relevant to it (`lib/config/workspace-nav.ts`), and filters a view does not show are reset to "all" for that view, so a hidden filter never silently constrains a chart. Available dimensions are city, micromarket, year, quarter, configuration (BHK), ticket size and property size.
+
 ## Configurable content (fill before public launch)
 
 | What | Where |
 |---|---|
-| Contact email, phone, address, social links | `lib/config/site.ts` (`null` renders "to be configured") |
-| Hero and section photography | `lib/config/site.ts → imagery` + files in `/public/images` |
-| Publications (titles, dates, summaries, PDF / external links) | `lib/config/publications.ts`. Entries are **sample placeholders**; set `isPlaceholder: false` when real |
-| Clients and collaborations | `lib/config/clients.ts`. Add **approved** entries only; logos go in `/public/logos` |
-| About-page facts and figures | `lib/config/about.ts` (`null` renders "TBC") |
+| Contact email, phone, address, social links | `lib/config/site.ts` (`null` values are hidden) |
+| Hero, platform and About photography | `lib/config/site.ts → imagery` + files in `/public/images` (an architectural line illustration is shown until set) |
+| Publications (titles, dates, summaries, PDF / external links) | `lib/config/publications.ts`. Current entries are samples (`isPlaceholder: true`) |
+| Clients and collaborations | `lib/config/clients.ts`. Add **approved** entries only (both lists ship empty); logos go in `/public/logos` |
+| About-page facts and figures | `lib/config/about.ts` (`null` facts are hidden) |
 | Map coverage status per city | `lib/config/coverage.ts` (all cities ship as *illustrative*) |
 | Ticket and size bracket presets | `lib/config/dimensions.ts` |
 
@@ -143,6 +162,7 @@ components  ──►  MarketDataService (interface, async)
 ## Quality notes
 
 - Every chart has a table view (accessible equivalent), PNG export and CSV export. The header Export menu lists every dataset on the current view.
-- The chart palette was validated for colour-vision deficiency and contrast against the dark chart surface. Colour follows the entity: demand is blue, supply is orange and price is aqua. Compared micromarkets keep their colour when the selection changes.
+- The chart palette was validated for colour-vision deficiency and contrast on white. Red is the primary series (demand, price), steel blue is supply, and restrained supporting hues are used for comparisons. Compared markets keep their colour when the selection changes. Heatmaps use a red/blue diverging scale around a neutral grey.
 - Keyboard: skip links, focus rings, arrow-key segmented controls and menus, and focus-trapped dialogs. The app respects `prefers-reduced-motion`.
 - The demo admin console persists to `localStorage` only and says so in the UI.
+- All 2,016 period × geography × property-type combinations (with configuration and size filters mixed in) reconcile: breakdowns, cross-tabs and micromarket series sum exactly to the headline totals.

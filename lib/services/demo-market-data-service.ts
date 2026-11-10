@@ -38,6 +38,8 @@ export class DemoMarketDataService implements MarketDataService {
     wait(this.engine.rangeAggregate(f, from, to));
   getObservations: MarketDataService["getObservations"] = (f) =>
     wait(generateObservations(this.engine, this.catalog, f));
+  getCrossTab: MarketDataService["getCrossTab"] = (f, r, c) => wait(this.engine.crossTab(f, r, c));
+  getMicromarketSeries: MarketDataService["getMicromarketSeries"] = (f, q = 8) => wait(this.engine.micromarketSeries(f, q));
 
   /** Synchronous access for static marketing previews (no loading state needed). */
   engineSync() {
