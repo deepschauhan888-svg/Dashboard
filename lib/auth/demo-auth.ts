@@ -6,6 +6,7 @@
  * data. Replace with SupabaseAuthService (see README → Future integration).
  */
 import type { AuthService, Session, SessionUser, UserRole } from "./types";
+import { clearSessionCookie, setSessionCookie } from "./session-cookie";
 
 const KEY = "mbri.demo-session";
 
@@ -58,6 +59,7 @@ function write(session: Session, remember: boolean) {
   } catch {
     /* storage unavailable — session lives for this page only */
   }
+  setSessionCookie(remember);
 }
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -66,14 +68,20 @@ export class DemoAuthService implements AuthService {
   readonly kind = "demo" as const;
 
   getSession() {
-    return read();
+    const s = read();
+    // keep the middleware's session marker in step with browser storage
+    if (typeof document !== "undefined") {
+      if (s) setSessionCookie(!!window.localStorage.getItem(KEY));
+      else clearSessionCookie();
+    }
+    return s;
   }
 
   async signIn(email: string, password: string, remember: boolean): Promise<Session> {
     await delay(500);
     if (email.trim().toLowerCase() !== DEMO_EMAIL.toLowerCase() || password !== DEMO_PASSWORD) {
       throw new Error(
-        "Live accounts are not yet enabled. Use the demonstration account shown on this page, or choose “Enter demo workspace”.",
+        "Live accounts are not yet enabled. Use the demonstration access on this page.",
       );
     }
     const session: Session = { user: PERSONAS.client_analyst, kind: "demo", issuedAt: new Date().toISOString() };
@@ -89,6 +97,7 @@ export class DemoAuthService implements AuthService {
   }
 
   async signOut() {
+    clearSessionCookie();
     try {
       window.localStorage.removeItem(KEY);
       window.sessionStorage.removeItem(KEY);

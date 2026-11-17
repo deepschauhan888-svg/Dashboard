@@ -1,59 +1,30 @@
 /**
- * Site-wide configuration — the single source of truth for business facts.
- *
- * Every fact that has not been formally approved is `null`. Public pages
- * render ONLY configured values: an unset email simply does not appear.
- *
- * `showSampleContent` controls clearly-labelled sample entries (publications)
- * used to demonstrate layouts during the management review. Set it to false
- * before public launch — sample entries then disappear entirely.
+ * Site-wide configuration — the single source of truth for brand facts.
+ * MB Research Intelligence is a login-first platform: the root URL is the
+ * sign-in page, and there are no corporate content pages.
  */
 
 export const siteConfig = {
   name: "MB Research Intelligence",
-  shortName: "MB Research",
   parentBrand: "Magicbricks",
   tagline: "Understand Markets. Anticipate Demand. Make Better Decisions.",
+  headline: "Real Estate Intelligence. Beyond the Obvious.",
+  supportingText: "Access comprehensive real estate market intelligence and discover the insights that drive better business decisions.",
   description:
-    "MB Research Intelligence transforms real estate market data into meaningful intelligence through comprehensive analysis of demand, supply, pricing and market dynamics.",
+    "MB Research Intelligence gives subscribed real estate developers direct access to market intelligence on demand, supply, pricing and market dynamics.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
 
-  showSampleContent: true,
-
-  contact: {
-    email: null as string | null,
-    phone: null as string | null,
-    address: null as string | null,
-    hours: null as string | null,
-  },
-
-  social: {
-    linkedin: null as string | null,
-    x: null as string | null,
-    youtube: null as string | null,
-  },
-
   /**
-   * Approved photography. Place files in /public/images and set the paths.
-   * Until then, pages use an architectural line illustration.
+   * Official logo assets, used exactly as supplied (no recolouring, redrawing
+   * or file edits). width/height are the files' intrinsic pixel sizes.
+   * `mark` is the region of each file that contains the logo itself (the
+   * supplied PNGs carry wide white margins); it is used only to frame the
+   * image on screen. When higher-resolution or tightly-cropped originals
+   * (or SVGs) are supplied, update src, width, height and set mark to the
+   * full image: { x: 0, y: 0, w: width, h: height }.
    */
-  imagery: {
-    hero: null as string | null,
-    platform: null as string | null,
-    about: null as string | null,
+  logos: {
+    mbResearch: { src: "/logos/mb-research.png", alt: "MB Research — Actionable Insights", width: 272, height: 162, mark: { x: 33, y: 50, w: 199, h: 62 } },
+    magicbricks: { src: "/logos/magicbricks.png", alt: "Magicbricks — Pata Badlo, Life Badlo", width: 284, height: 142, mark: { x: 16, y: 29, w: 252, h: 84 } },
   },
 } as const;
-
-export const primaryNav = [
-  { label: "Home", href: "/" },
-  { label: "Platform", href: "/platform" },
-  { label: "About MB Research", href: "/about" },
-  { label: "Publications", href: "/publications" },
-  { label: "Clients & Collaborations", href: "/clients" },
-  { label: "Contact", href: "/contact" },
-] as const;
-
-export const legalNav = [
-  { label: "Data Disclaimer", href: "/legal/disclaimer" },
-  { label: "Privacy", href: "/legal/privacy" },
-] as const;
