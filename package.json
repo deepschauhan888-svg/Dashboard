@@ -2,7 +2,7 @@
   "name": "mb-research-intelligence",
   "version": "0.1.0",
   "private": true,
-  "description": "MB Research Intelligence — enterprise real estate market intelligence platform (showcase build with demonstration data).",
+  "description": "MB Research Intelligence \u2014 enterprise real estate market intelligence platform (showcase build with demonstration data).",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -17,9 +17,10 @@
     "echarts": "^5.6.0",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.544.0",
-    "next": "15.5.4",
+    "next": "15.5.29",
     "react": "19.1.1",
-    "react-dom": "19.1.1"
+    "react-dom": "19.1.1",
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.13",

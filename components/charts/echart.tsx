@@ -1,7 +1,6 @@
 "use client";
 
 import type { EChartsOption } from "echarts";
-import type { EChartsType } from "echarts/core";
 import { useEffect, useRef, useState } from "react";
 import { loadECharts } from "@/lib/charts/loader";
 import { cn } from "@/lib/utils/cn";
@@ -29,7 +28,7 @@ export function EChart({
   onReady?: (handle: EChartHandle) => void;
 }) {
   const el = useRef<HTMLDivElement>(null);
-  const chart = useRef<EChartsType | null>(null);
+  const chart = useRef<ReturnType<typeof import("echarts/core").init> | null>(null);
   const latest = useRef(option);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   latest.current = option;

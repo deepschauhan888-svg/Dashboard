@@ -10,7 +10,7 @@ Enterprise real estate market intelligence platform by **MB Research, Magicbrick
 
 | Layer | Choice |
 |---|---|
-| Framework | Next.js 15 (App Router), React 19 |
+| Framework | Next.js 15.5.29 (App Router, patched for advisories up to the November 2026 security release), React 19 |
 | Language | TypeScript (strict) |
 | Styling | Tailwind CSS v4 with design tokens in `app/globals.css` (`@theme`). Identity: white + red (#B5122B) + charcoal (#252525) |
 | Motion | Framer Motion |
@@ -59,6 +59,26 @@ See `.env.example`. None are required for the showcase.
 | `SUPABASE_SERVICE_ROLE_KEY` | – | Future, **server-only** |
 
 No secrets or production credentials are committed.
+
+## Updating an existing checkout
+
+Replace the source tree rather than unpacking a new version on top of an old one. Next.js type-checks **every** `.ts`/`.tsx` file in the project, including files no route imports, so leftover files from an earlier version fail the production build.
+
+Files removed in the white-and-red redesign. Delete them if they are still present:
+
+```bash
+git rm -f --ignore-unmatch \
+  components/analyst/configuration-module.tsx \
+  components/dashboard/kpi-card.tsx \
+  components/home/count-up.tsx \
+  components/home/hero-canvas.tsx \
+  components/home/how-it-works.tsx \
+  components/home/intelligence-cards.tsx \
+  components/home/markets-decoded.tsx \
+  components/home/publications-preview.tsx \
+  components/home/who-we-are.tsx \
+  lib/config/modules.ts
+```
 
 ## Deployment (GitHub → Vercel)
 
