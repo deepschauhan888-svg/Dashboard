@@ -7,11 +7,13 @@ import { getMarketDataService } from "@/lib/services";
 import { ALL_FILTERS, effectiveFilters, filterKey } from "@/lib/analytics/filters";
 import { periodLabel } from "@/lib/analytics/period";
 import { BHK_LABELS } from "@/lib/config/dimensions";
-import { viewBySlug, type WorkspaceView } from "@/lib/config/workspace-nav";
+import { viewBySlug, type WorkspaceMode, type WorkspaceView } from "@/lib/config/workspace-nav";
 
 const STORAGE_KEY = "mbri.filters.v2";
 
 interface WorkspaceValue {
+  /** "client" (signed-in workspace) or "preview" (public platform preview) */
+  mode: WorkspaceMode;
   catalog: MarketCatalog | null;
   catalogError: string | null;
   /** raw selections — use `useViewFilters` in modules */
@@ -28,7 +30,7 @@ function defaults(catalog: MarketCatalog | null): MarketFilters {
   return { ...ALL_FILTERS, year: catalog?.latestPeriod.year ?? 2026, quarter: catalog?.latestPeriod.quarter ?? 3 };
 }
 
-export function WorkspaceProvider({ children }: { children: ReactNode }) {
+export function WorkspaceProvider({ children, mode = "client" }: { children: ReactNode; mode?: WorkspaceMode }) {
   const [catalog, setCatalog] = useState<MarketCatalog | null>(null);
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const [filters, setFilters] = useState<MarketFilters>(() => defaults(null));
@@ -98,7 +100,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const value = useMemo(() => ({ catalog, catalogError, filters, setFilter, resetFilters, exports, registerExport }), [catalog, catalogError, filters, setFilter, resetFilters, exports, registerExport]);
+  const value = useMemo(
+    () => ({ mode, catalog, catalogError, filters, setFilter, resetFilters, exports, registerExport }),
+    [mode, catalog, catalogError, filters, setFilter, resetFilters, exports, registerExport],
+  );
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;
 }
 

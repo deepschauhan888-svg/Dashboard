@@ -1,12 +1,7 @@
-import { SiteFooter } from "@/components/layout/site-footer";
-import { SiteHeader } from "@/components/layout/site-header";
-
-export default function PublicLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      <SiteHeader />
-      <main id="main">{children}</main>
-      <SiteFooter />
-    </>
-  );
+/**
+ * Route group for the unauthenticated entry point. The sign-in page renders
+ * its own minimal chrome, so this layout adds nothing.
+ */
+export default function EntryLayout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }

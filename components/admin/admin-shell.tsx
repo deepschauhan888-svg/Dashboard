@@ -47,7 +47,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   useEffect(() => setOpen(false), [pathname]);
 
   useEffect(() => {
-    if (ready && !session) router.replace("/login");
+    if (ready && !session) router.replace("/");
   }, [ready, session, router]);
 
   if (!ready || !session) {
@@ -111,7 +111,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
               type="button"
               onClick={async () => {
                 await signOut();
-                router.push("/login");
+                router.push("/");
               }}
               className="flex items-center gap-2 text-[13px] text-ink-2 hover:text-ink"
             >

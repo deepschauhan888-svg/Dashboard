@@ -1,11 +1,6 @@
-import type { Metadata } from "next";
-import { LoginExperience } from "@/components/auth/login-experience";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "Client Login",
-  robots: { index: false, follow: false },
-};
-
-export default function LoginPage() {
-  return <LoginExperience />;
+/** Sign-in now lives at the root URL; keep old /login links working. */
+export default function LoginRedirect() {
+  redirect("/");
 }

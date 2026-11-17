@@ -1,44 +1,51 @@
 "use client";
 
-import { ChevronDown, Download, FileSpreadsheet, LogOut, Menu, Printer, ShieldCheck, X } from "lucide-react";
+import { ArrowLeft, ChevronDown, Download, FileSpreadsheet, LogOut, Menu, Printer, ShieldCheck, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
-import { analystNav, executiveNav, viewForPath, type WorkspaceNavItem } from "@/lib/config/workspace-nav";
+import { analystNav, executiveNav, hrefFor, viewForPath, type WorkspaceMode, type WorkspaceNavItem } from "@/lib/config/workspace-nav";
+import { effectiveFilters } from "@/lib/analytics/filters";
 import { periodLabel } from "@/lib/analytics/period";
 import { downloadCsv, slugify } from "@/lib/utils/download";
 import { cn } from "@/lib/utils/cn";
 import { DemoDataBadge } from "@/components/ui/badge";
 import { Dropdown, MenuItem, MenuLabel, MenuSeparator } from "@/components/ui/dropdown";
 import { Logo } from "@/components/ui/logo";
+import { DemoRequestDialog } from "@/components/forms/demo-request-dialog";
 import { FilterBar } from "./filter-bar";
 import { WorkspaceProvider, describeScope, useWorkspace } from "./workspace-context";
-import { effectiveFilters } from "@/lib/analytics/filters";
 
-export function WorkspaceShell({ children }: { children: ReactNode }) {
+/**
+ * Shell for the analytics workspace.
+ *  - mode "client":  requires a session (the server middleware also guards /dashboard)
+ *  - mode "preview": public "Explore Platform" preview on demonstration data
+ */
+export function WorkspaceShell({ children, mode = "client" }: { children: ReactNode; mode?: WorkspaceMode }) {
   const { session, ready } = useAuth();
   const router = useRouter();
+  const needsSession = mode === "client";
 
   useEffect(() => {
-    if (ready && !session) router.replace("/login");
-  }, [ready, session, router]);
+    if (needsSession && ready && !session) router.replace("/");
+  }, [needsSession, ready, session, router]);
 
-  if (!ready || !session) {
+  if (needsSession && (!ready || !session)) {
     return <div className="flex min-h-screen items-center justify-center bg-white text-[13px] text-ink-2">Opening workspace…</div>;
   }
 
   return (
-    <WorkspaceProvider>
+    <WorkspaceProvider mode={mode}>
       <ShellFrame>{children}</ShellFrame>
     </WorkspaceProvider>
   );
 }
 
 function ShellFrame({ children }: { children: ReactNode }) {
-  const pathname = usePathname() ?? "/dashboard";
+  const { filters, catalog, mode } = useWorkspace();
+  const pathname = usePathname() ?? hrefFor("executive", mode);
   const [navOpen, setNavOpen] = useState(false);
-  const { filters, catalog } = useWorkspace();
   const view = viewForPath(pathname);
   useEffect(() => setNavOpen(false), [pathname]);
 
@@ -49,7 +56,7 @@ function ShellFrame({ children }: { children: ReactNode }) {
       </a>
       <aside className={cn("fixed inset-y-0 left-0 z-40 flex w-[240px] flex-col border-r border-line bg-paper transition-transform duration-300 lg:translate-x-0", navOpen ? "translate-x-0" : "-translate-x-full")} aria-label="Workspace navigation">
         <div className="flex h-16 items-center justify-between px-5">
-          <Link href="/dashboard" aria-label="Executive overview">
+          <Link href={hrefFor("executive", mode)} aria-label="Executive overview">
             <Logo />
           </Link>
           <button type="button" className="rounded-xs p-1 text-ink-2 lg:hidden" onClick={() => setNavOpen(false)} aria-label="Close navigation">
@@ -57,9 +64,9 @@ function ShellFrame({ children }: { children: ReactNode }) {
           </button>
         </div>
         <nav className="flex-1 overflow-y-auto px-3 pb-5 pt-2 scrollbar-thin">
-          <NavGroup title="Executive" items={[executiveNav]} pathname={pathname} />
-          <NavGroup title="Analyst workspace" items={analystNav} pathname={pathname} />
-          <AdminLink />
+          <NavGroup title="Executive" items={[executiveNav]} pathname={pathname} mode={mode} />
+          <NavGroup title={mode === "preview" ? "Analyst modules" : "Analyst workspace"} items={analystNav} pathname={pathname} mode={mode} />
+          {mode === "client" && <AdminLink />}
         </nav>
         <div className="border-t border-line p-4">
           <DemoDataBadge />
@@ -69,8 +76,8 @@ function ShellFrame({ children }: { children: ReactNode }) {
       {navOpen && <div className="fixed inset-0 z-30 bg-ink/20 lg:hidden" onClick={() => setNavOpen(false)} aria-hidden />}
 
       <div className="lg:pl-[240px]">
-        <WorkspaceHeader onMenu={() => setNavOpen(true)} />
-        <div className="no-print z-20 border-b border-line bg-white/95 px-5 py-3 backdrop-blur sm:px-8 lg:sticky lg:top-16">
+        {mode === "preview" ? <PreviewHeader onMenu={() => setNavOpen(true)} /> : <ClientHeader onMenu={() => setNavOpen(true)} />}
+        <div className={cn("no-print z-20 border-b border-line bg-white/95 px-5 py-3 backdrop-blur sm:px-8 lg:sticky", mode === "preview" ? "lg:top-[104px]" : "lg:top-16")}>
           <FilterBar visible={view.filters} />
           <p className="mt-2 truncate text-[12px] text-ink-2" aria-live="polite">
             {describeScope(effectiveFilters(filters, view.filters), catalog, view.filters)}
@@ -84,17 +91,18 @@ function ShellFrame({ children }: { children: ReactNode }) {
   );
 }
 
-function NavGroup({ title, items, pathname }: { title: string; items: WorkspaceNavItem[]; pathname: string }) {
+function NavGroup({ title, items, pathname, mode }: { title: string; items: WorkspaceNavItem[]; pathname: string; mode: WorkspaceMode }) {
   return (
     <div className="mb-6">
       <p className="mb-2 px-3 text-[10.5px] font-semibold uppercase tracking-[0.12em] text-ink-2">{title}</p>
       <ul className="space-y-0.5">
         {items.map((it) => {
-          const active = pathname === it.href;
+          const href = hrefFor(it.view, mode);
+          const active = pathname.replace(/\/$/, "") === href;
           return (
-            <li key={it.href}>
+            <li key={it.view}>
               <Link
-                href={it.href}
+                href={href}
                 aria-current={active ? "page" : undefined}
                 className={cn("relative flex items-center rounded-sm px-3 py-2 text-[13.5px] transition-colors", active ? "bg-white font-medium text-ink shadow-[0_0_0_1px_#EAEAEA]" : "text-ink-2 hover:bg-white hover:text-ink")}
               >
@@ -119,12 +127,90 @@ function AdminLink() {
   );
 }
 
-function WorkspaceHeader({ onMenu }: { onMenu: () => void }) {
+function ExportMenu() {
+  const { exports } = useWorkspace();
+  const exportNames = Object.keys(exports);
+  return (
+    <Dropdown
+      label="Export"
+      width="w-72"
+      trigger={({ open }) => (
+        <span className={cn("inline-flex h-9 items-center gap-2 rounded-sm px-3 text-[13px] ring-1 ring-inset transition-colors", open ? "bg-mist ring-line-strong" : "ring-line-strong hover:bg-paper")}>
+          <Download className="h-4 w-4" aria-hidden /> <span className="hidden sm:inline">Export</span>
+        </span>
+      )}
+    >
+      {(close) => (
+        <>
+          <MenuLabel>Current view · CSV</MenuLabel>
+          {exportNames.length ? (
+            exportNames.map((n) => (
+              <MenuItem
+                key={n}
+                icon={<FileSpreadsheet className="h-4 w-4" />}
+                onSelect={() => {
+                  downloadCsv(slugify(n), exports[n].columns, exports[n].rows);
+                  close();
+                }}
+              >
+                {n}
+              </MenuItem>
+            ))
+          ) : (
+            <MenuItem disabled>No datasets on this view yet</MenuItem>
+          )}
+          <MenuSeparator />
+          <MenuItem
+            icon={<Printer className="h-4 w-4" />}
+            hint="Uses the browser print dialog"
+            onSelect={() => {
+              close();
+              setTimeout(() => window.print(), 50);
+            }}
+          >
+            Print / save as PDF
+          </MenuItem>
+        </>
+      )}
+    </Dropdown>
+  );
+}
+
+/** Header for the public preview: clearly labelled, with a route back to sign-in. */
+function PreviewHeader({ onMenu }: { onMenu: () => void }) {
+  const [demoOpen, setDemoOpen] = useState(false);
+  return (
+    <header className="no-print sticky top-0 z-30 border-b border-line bg-white/95 backdrop-blur">
+      <div className="flex items-center justify-center gap-2 bg-brand px-4 py-2 text-center text-[12.5px] text-white">
+        <span className="font-semibold">Platform preview</span>
+        <span className="hidden sm:inline">· Explore every module on synthetic demonstration data. No subscription required.</span>
+      </div>
+      <div className="flex h-16 items-center justify-between gap-3 px-5 sm:px-8">
+        <div className="flex min-w-0 items-center gap-3">
+          <button type="button" className="rounded-xs p-1.5 text-ink lg:hidden" onClick={onMenu} aria-label="Open navigation">
+            <Menu className="h-5 w-5" />
+          </button>
+          <Link href="/" className="inline-flex items-center gap-1.5 text-[13.5px] font-medium text-ink hover:text-brand">
+            <ArrowLeft className="h-4 w-4" aria-hidden /> Back to sign in
+          </Link>
+        </div>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <ExportMenu />
+          <button type="button" onClick={() => setDemoOpen(true)} className="inline-flex h-9 items-center rounded-sm bg-brand px-3 text-[13px] font-medium text-white hover:bg-brand-dark sm:px-4">
+            Request a Demo
+          </button>
+        </div>
+      </div>
+      <DemoRequestDialog open={demoOpen} onClose={() => setDemoOpen(false)} />
+    </header>
+  );
+}
+
+function ClientHeader({ onMenu }: { onMenu: () => void }) {
   const { session, signOut } = useAuth();
-  const { catalog, exports } = useWorkspace();
+  const { catalog } = useWorkspace();
   const router = useRouter();
   const user = session?.user;
-  const exportNames = Object.keys(exports);
 
   return (
     <header className="no-print sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-line bg-white/95 px-5 backdrop-blur sm:px-8">
@@ -146,49 +232,7 @@ function WorkspaceHeader({ onMenu }: { onMenu: () => void }) {
             <span className="text-caution">Demonstration dataset</span>
           </p>
         )}
-        <Dropdown
-          label="Export"
-          width="w-72"
-          trigger={({ open }) => (
-            <span className={cn("inline-flex h-9 items-center gap-2 rounded-sm px-3 text-[13px] ring-1 ring-inset transition-colors", open ? "bg-mist ring-line-strong" : "ring-line-strong hover:bg-paper")}>
-              <Download className="h-4 w-4" aria-hidden /> <span className="hidden sm:inline">Export</span>
-            </span>
-          )}
-        >
-          {(close) => (
-            <>
-              <MenuLabel>Current view · CSV</MenuLabel>
-              {exportNames.length ? (
-                exportNames.map((n) => (
-                  <MenuItem
-                    key={n}
-                    icon={<FileSpreadsheet className="h-4 w-4" />}
-                    onSelect={() => {
-                      downloadCsv(slugify(n), exports[n].columns, exports[n].rows);
-                      close();
-                    }}
-                  >
-                    {n}
-                  </MenuItem>
-                ))
-              ) : (
-                <MenuItem disabled>No datasets on this view yet</MenuItem>
-              )}
-              <MenuSeparator />
-              <MenuItem
-                icon={<Printer className="h-4 w-4" />}
-                hint="Uses the browser print dialog"
-                onSelect={() => {
-                  close();
-                  setTimeout(() => window.print(), 50);
-                }}
-              >
-                Print / save as PDF
-              </MenuItem>
-            </>
-          )}
-        </Dropdown>
-
+        <ExportMenu />
         <Dropdown
           label="Profile"
           width="w-64"
@@ -224,7 +268,7 @@ function WorkspaceHeader({ onMenu }: { onMenu: () => void }) {
                 onSelect={async () => {
                   close();
                   await signOut();
-                  router.push("/login");
+                  router.push("/");
                 }}
               >
                 Sign out

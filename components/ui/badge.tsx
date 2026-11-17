@@ -26,7 +26,3 @@ export function DemoDataBadge({ className, compact }: { className?: string; comp
     </span>
   );
 }
-
-export function SampleBadge({ className }: { className?: string }) {
-  return <span className={cn("inline-flex shrink-0 items-center whitespace-nowrap rounded-xs border border-dashed border-line-strong px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] text-ink-2", className)}>Sample entry</span>;
-}

@@ -123,7 +123,7 @@ export function HistoryModule() {
     <div>
       <WorkspacePageHeader
         kicker="Analyst · History"
-        title="Historical Analysis"
+        title="Historical Trends"
         description="Navigate the full quarterly history, overlay years to isolate seasonality, and compare any two periods. Geography and configuration follow the filters above."
         actions={<Segmented ariaLabel="Metric" size="md" value={metric} onChange={setMetric} options={METRICS.map((x) => ({ value: x.value, label: x.label }))} />}
       />

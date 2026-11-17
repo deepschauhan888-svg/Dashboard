@@ -65,13 +65,3 @@ export function ButtonLink({
     </Link>
   );
 }
-
-/** Arrow text link used for "learn more" style navigation. */
-export function TextLink({ href, children, className }: { href: string; children: ReactNode; className?: string }) {
-  return (
-    <Link href={href} className={cn("group inline-flex items-center gap-1.5 text-[14px] font-medium text-ink underline-offset-4 hover:text-brand", className)}>
-      {children}
-      <span aria-hidden className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
-    </Link>
-  );
-}

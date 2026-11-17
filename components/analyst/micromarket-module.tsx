@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { getMarketDataService } from "@/lib/services";
+import { hrefFor } from "@/lib/config/workspace-nav";
 import { useAsync } from "@/lib/hooks/use-async";
 import { heatmapOption, rankedBarsOption } from "@/lib/charts/options";
 import { chartColors } from "@/lib/charts/theme";
@@ -18,7 +19,7 @@ import { useRegisterExport, useViewFilters, useWorkspace } from "@/components/da
 type HeatMetric = "ds" | "demandYoY";
 
 export function MicromarketModule() {
-  const { catalog, setFilter } = useWorkspace();
+  const { catalog, setFilter, mode } = useWorkspace();
   const { filters, key } = useViewFilters("micromarkets");
   const svc = getMarketDataService();
   const router = useRouter();
@@ -78,7 +79,7 @@ export function MicromarketModule() {
   if (catalog && !city) {
     return (
       <div>
-        <WorkspacePageHeader kicker="Analyst · Micromarkets" title="Micromarket Analysis" description="Locality-level analysis within one city. Choose a city to begin." />
+        <WorkspacePageHeader kicker="Micromarket Intelligence" title="Micromarket Intelligence" description="Locality-level analysis within one city. Choose a city to begin." />
         <ul className="grid gap-px overflow-hidden rounded-sm border border-line bg-line sm:grid-cols-2 lg:grid-cols-5">
           {catalog.cities.map((c) => (
             <li key={c.city_id} className="bg-white">
@@ -102,7 +103,7 @@ export function MicromarketModule() {
 
   return (
     <div>
-      <WorkspacePageHeader kicker="Analyst · Micromarkets" title={`Micromarkets in ${city?.city_name ?? ""}`} description={`How the localities of ${city?.city_name ?? "the city"} compare in ${k?.period.label ?? "the selected period"}, and how each has moved quarter by quarter. Change the city in the filters above.`} />
+      <WorkspacePageHeader kicker="Micromarket Intelligence" title={`Micromarkets in ${city?.city_name ?? ""}`} description={`How the localities of ${city?.city_name ?? "the city"} compare in ${k?.period.label ?? "the selected period"}, and how each has moved quarter by quarter. Change the city in the filters above.`} />
       <StatStrip
         loading={loading}
         stats={[
@@ -117,7 +118,7 @@ export function MicromarketModule() {
       <div className="rounded-sm border border-line px-2 py-1 sm:px-3">
         {data ? (
           rows.length ? (
-            <PerformanceTable rows={rows} onSelect={(id) => { setFilter("micromarketId", id); router.push("/dashboard/analyst/demand"); }} />
+            <PerformanceTable rows={rows} onSelect={(id) => { setFilter("micromarketId", id); router.push(hrefFor("demand", mode)); }} />
           ) : (
             <p className="px-3 py-8 text-center text-[13px] text-ink-2">No micromarkets have data for this selection.</p>
           )

@@ -1,23 +1,18 @@
-import { AnalyticsPreview } from "@/components/home/analytics-preview";
-import { CoverageMap } from "@/components/home/coverage-map";
-import { FinalCta } from "@/components/home/final-cta";
-import { Hero } from "@/components/home/hero";
-import { CapabilityOverview, Introduction } from "@/components/home/introduction";
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import { LoginExperience } from "@/components/auth/login-experience";
+import { siteConfig } from "@/lib/config/site";
 
-/**
- * Home: A hero · B introduction · C capability overview · D analytics preview
- * · E coverage preview · F one call to action. Nothing else — every other
- * subject lives on its own page.
- */
-export default function HomePage() {
+export const metadata: Metadata = {
+  title: { absolute: `${siteConfig.name} — Sign in` },
+  description: siteConfig.description,
+};
+
+/** The root URL is the sign-in page. */
+export default function EntryPage() {
   return (
-    <>
-      <Hero />
-      <Introduction />
-      <CapabilityOverview />
-      <AnalyticsPreview />
-      <CoverageMap />
-      <FinalCta />
-    </>
+    <Suspense fallback={<div className="min-h-screen bg-white" />}>
+      <LoginExperience />
+    </Suspense>
   );
 }

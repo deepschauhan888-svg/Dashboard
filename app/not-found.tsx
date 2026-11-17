@@ -12,10 +12,10 @@ export default function NotFound() {
       <p className="mx-auto mt-4 max-w-md text-ink-2">The address may have changed, or the page may have moved.</p>
       <div className="mt-10 flex justify-center gap-3">
         <Link href="/" className="inline-flex h-10 items-center rounded-sm bg-brand px-4 text-sm font-medium text-white hover:bg-brand-dark">
-          Back to home
+          Back to sign in
         </Link>
-        <Link href="/contact" className="inline-flex h-10 items-center rounded-sm px-4 text-sm font-medium ring-1 ring-inset ring-line-strong hover:ring-ink/40">
-          Contact us
+        <Link href="/preview" className="inline-flex h-10 items-center rounded-sm px-4 text-sm font-medium ring-1 ring-inset ring-line-strong hover:ring-ink/40">
+          Explore Platform
         </Link>
       </div>
     </main>
